@@ -1,50 +1,37 @@
-# 🔧 Kompilator og flagg
 CXX := g++
 CXXFLAGS := -Wall -std=c++20 -Iinclude
 
-# 📁 Mapper
 SRC := src
 OBJ := build
 BIN := bin
 
-# 📄 Filer
-DEMOS := tick_watcher latch_demo latch_demo2 clock_latch_demo latch_clock_demo vm8
+.PHONY: all clean run-%
 
-# 📦 Sørg for mapper
-$(shell mkdir -p $(OBJ) $(BIN))
+all: $(BIN)/tick_watcher
 
-# 🔄 Objektfiler
-$(OBJ)/%.o: $(SRC)/%.cpp
+# Sørg for at bin/ og build/ finnes
+$(BIN):
+	mkdir -p $(BIN)
+
+$(OBJ):
+	mkdir -p $(OBJ)
+
+# Bygg program
+$(BIN)/tick_watcher: $(OBJ)/tick_watcher.o $(OBJ)/clock.o | $(BIN)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# Objektfiler (avhenger også av mappene)
+$(OBJ)/tick_watcher.o: $(SRC)/tick_watcher.cpp $(SRC)/clock.hpp | $(OBJ)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-# 🎯 Spesifikke linker
-$(BIN)/tick_watcher: $(OBJ)/tick_watcher.o $(OBJ)/clock.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
+$(OBJ)/clock.o: $(SRC)/clock.cpp $(SRC)/clock.hpp | $(OBJ)
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BIN)/latch_demo: $(OBJ)/latch_demo.o $(OBJ)/latch.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-$(BIN)/latch_demo2: $(OBJ)/latch_demo2.o $(OBJ)/latch.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-$(BIN)/clock_latch_demo: $(OBJ)/clock_latch_demo.o $(OBJ)/clock.o $(OBJ)/latch.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-$(BIN)/latch_clock_demo: $(OBJ)/latch_clock_demo.o $(OBJ)/clock.o $(OBJ)/latch.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-$(BIN)/vm8: $(OBJ)/cpu.o
-	$(CXX) $(CXXFLAGS) $^ -o $@
-
-# ▶️ Kjør
+# Kjør
 run-%: $(BIN)/%
-	$<
+	@echo "▶️ Kjører $*"
+	@./$(BIN)/$*
 
-# 🧼 Rydd
+# Rydd opp
 clean:
 	rm -rf $(OBJ) $(BIN)
-
-.PHONY: all clean $(addprefix run-,$(DEMOS))
-
-# Bygg alle
-all: $(addprefix $(BIN)/, $(DEMOS))

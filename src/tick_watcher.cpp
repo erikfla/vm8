@@ -1,30 +1,26 @@
-#include "clock.hpp"
 #include <iostream>
-#include <thread>
-#include <chrono>
+#include "clock.hpp"
 
 int main() {
     Clock clk;
-    std::string input;
 
     std::cout << "=== KLOKKE-TICKDEMO ===\n";
-    std::cout << "Trykk Enter for å starte. 'q' + Enter for å avslutte.\n";
+    std::cout << "Trykk Enter for en pulssyklus. Skriv 'q' + Enter for å avslutte.\n";
 
+    std::string input;
     while (true) {
         std::cout << "> ";
         std::getline(std::cin, input);
 
-        if (input == "q") break;
-
-        std::cout << "Starter klokka...\n";
-        for (int i = 0; i < 10; ++i) {
-            clk.tick();
-            std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        if (input == "q") {
+            std::cout << "=== AVSLUTTER ===\n";
+            break;
         }
 
-        std::cout << "[PAUSE] – Trykk Enter for en runde til\n";
+        std::cout << "Starter én pulssyklus:\n";
+        clk.tick();  // Høy → lav
+        clk.tick();  // Lav → høy
     }
 
-    std::cout << "=== STOPP ===\n";
     return 0;
 }
