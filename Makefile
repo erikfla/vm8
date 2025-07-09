@@ -1,61 +1,50 @@
-# Kompilator og flagg
-CXX = g++
-CXXFLAGS = -Wall -std=c++17
+# 🔧 Kompilator og flagg
+CXX := g++
+CXXFLAGS := -Wall -std=c++20 -Iinclude
 
-# Mapper
-SRC = src
-BIN = bin
+# 📁 Mapper
+SRC := src
+OBJ := build
+BIN := bin
 
-# Lag bin-mappen hvis den ikke finnes
-$(shell mkdir -p $(BIN))
+# 📄 Filer
+DEMOS := tick_watcher latch_demo latch_demo2 clock_latch_demo latch_clock_demo vm8
 
-# Kildefiler
-CLOCK_SRC = $(SRC)/clock.cpp
-CLOCK_HDR = $(SRC)/clock.hpp
+# 📦 Sørg for mapper
+$(shell mkdir -p $(OBJ) $(BIN))
 
-# Programmer
-KLOKKE_SRC = $(SRC)/tick_watcher.cpp
-KLOKKE_BIN = $(BIN)/klokke
+# 🔄 Objektfiler
+$(OBJ)/%.o: $(SRC)/%.cpp
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-CPU_SRC = $(SRC)/cpu.cpp
-CPU_BIN = $(BIN)/vm8
+# 🎯 Spesifikke linker
+$(BIN)/tick_watcher: $(OBJ)/tick_watcher.o $(OBJ)/clock.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# Standardmål: bygg alt
-all: $(KLOKKE_BIN) $(CPU_BIN)
+$(BIN)/latch_demo: $(OBJ)/latch_demo.o $(OBJ)/latch.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# Klokke-demo
-$(KLOKKE_BIN): $(CLOCK_SRC) $(KLOKKE_SRC) $(CLOCK_HDR)
-	$(CXX) $(CXXFLAGS) -o $@ $(CLOCK_SRC) $(KLOKKE_SRC)
+$(BIN)/latch_demo2: $(OBJ)/latch_demo2.o $(OBJ)/latch.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# CPU-program (foreløpig placeholder – kan erstattes)
-$(CPU_BIN): $(CPU_SRC)
-	$(CXX) $(CXXFLAGS) -o $@ $(CPU_SRC)
+$(BIN)/clock_latch_demo: $(OBJ)/clock_latch_demo.o $(OBJ)/clock.o $(OBJ)/latch.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-# Kjør klokke
-run-klokke: $(KLOKKE_BIN)
-	./$(KLOKKE_BIN)
+$(BIN)/latch_clock_demo: $(OBJ)/latch_clock_demo.o $(OBJ)/clock.o $(OBJ)/latch.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-LATCH_SRC = $(SRC)/latch.cpp
-LATCH_HDR = $(SRC)/latch.hpp
-LATCH_DEMO = $(SRC)/latch_demo.cpp
-LATCH_BIN = $(BIN)/latch_demo
-LATCH_DEMO2 = $(SRC)/latch_demo2.cpp
-LATCH_BIN2 = $(BIN)/latch_demo2
+$(BIN)/vm8: $(OBJ)/cpu.o
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(LATCH_BIN2): $(LATCH_SRC) $(LATCH_HDR) $(LATCH_DEMO2)
-	$(CXX) $(CXXFLAGS) -o $@ $(LATCH_SRC) $(LATCH_DEMO2)
+# ▶️ Kjør
+run-%: $(BIN)/%
+	$<
 
-run-latch2: $(LATCH_BIN2)
-	./$(LATCH_BIN2)
-
-$(LATCH_BIN): $(LATCH_SRC) $(LATCH_HDR) $(LATCH_DEMO)
-	$(CXX) $(CXXFLAGS) -o $@ $(LATCH_SRC) $(LATCH_DEMO)
-
-run-latch: $(LATCH_BIN)
-	./$(LATCH_BIN)
-
-# Rydd opp
+# 🧼 Rydd
 clean:
-	rm -rf $(BIN)
+	rm -rf $(OBJ) $(BIN)
 
-.PHONY: all clean run-klokke
+.PHONY: all clean $(addprefix run-,$(DEMOS))
+
+# Bygg alle
+all: $(addprefix $(BIN)/, $(DEMOS))

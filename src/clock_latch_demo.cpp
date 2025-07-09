@@ -29,9 +29,9 @@ int main() {
             if (running) {
                 clk.tick();
                 if (enable)
-                    bit.update(input, clk.state());
+                    bit.update(input, clk.isHigh());
 
-                std::cout << "[clk: " << (clk.state() ? "↑" : "_")
+                std::cout << "[clk: " << (clk.isHigh() ? "↑" : "_")
                           << "  in: " << input
                           << "  out: " << bit.output()
                           << "]" << std::endl;
@@ -55,9 +55,9 @@ int main() {
         else if (cmd == "s") {
             clk.tick();
             if (enable)
-                bit.update(input, clk.state());
+                bit.update(input, clk.isHigh());
 
-            std::cout << "[clk: " << (clk.state() ? "↑" : "_")
+            std::cout << "[clk: " << (clk.isHigh() ? "↑" : "_")
                       << "  in: " << input
                       << "  out: " << bit.output()
                       << "]" << std::endl;

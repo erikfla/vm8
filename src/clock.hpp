@@ -7,9 +7,14 @@ class Clock {
 private:
     bool state = false;
     bool lastState = false;
+    double frequency = 1.0; // ← NY (valgfritt, for fremtidig bruk)
 
 public:
+    Clock() = default;                   // ← Behold default
+    Clock(double hz) : frequency(hz) {}  // ← Legg til dette
+
     void tick();                      // én puls
+    bool isHigh() const { return state; }
     bool isRisingEdge() const;       // LOW → HIGH
     bool isFallingEdge() const;      // HIGH → LOW
     std::string visual() const;      // "▮" eller "_"
