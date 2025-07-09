@@ -39,6 +39,14 @@ LATCH_SRC = $(SRC)/latch.cpp
 LATCH_HDR = $(SRC)/latch.hpp
 LATCH_DEMO = $(SRC)/latch_demo.cpp
 LATCH_BIN = $(BIN)/latch_demo
+LATCH_DEMO2 = $(SRC)/latch_demo2.cpp
+LATCH_BIN2 = $(BIN)/latch_demo2
+
+$(LATCH_BIN2): $(LATCH_SRC) $(LATCH_HDR) $(LATCH_DEMO2)
+	$(CXX) $(CXXFLAGS) -o $@ $(LATCH_SRC) $(LATCH_DEMO2)
+
+run-latch2: $(LATCH_BIN2)
+	./$(LATCH_BIN2)
 
 $(LATCH_BIN): $(LATCH_SRC) $(LATCH_HDR) $(LATCH_DEMO)
 	$(CXX) $(CXXFLAGS) -o $@ $(LATCH_SRC) $(LATCH_DEMO)
