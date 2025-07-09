@@ -4,6 +4,17 @@ Et lærings- og utviklingsprosjekt inspirert av Ben Eaters breadboard-datamaskin
 
 ---
 
+## latch_demo – 1-bit Celle
+
+Dette programmet demonstrerer hvordan en SR-latch og en D-latch fungerer som en 1-bit hukommelsescelle – den mest grunnleggende byggesteinen i et register eller RAM.
+
+### Kjøring
+
+Bygg og kjør:
+
+```bash
+make run-latch
+
 ## 🥅 Første delmål
 
 - Implementere en virtuell klokke med visuell puls (▮/_)
