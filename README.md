@@ -4,6 +4,21 @@ Et lærings- og utviklingsprosjekt inspirert av Ben Eaters breadboard-datamaskin
 
 ---
 
+## 🥅 Første delmål
+
+- Implementere en virtuell klokke med visuell puls (▮/_)
+- Lage en enkel CPU-løkke med:
+  - RAM (16 adresser, 8-bit)
+  - Register: PC, IR, ACC
+  - Instruksjoner: LDA, OUT, HLT
+- Kjøre testprogram som:
+  1. Laster 42 fra adresse 0x01
+  2. Skriver det ut med OUT
+  3. Stopper med HLT
+- Kjøre i terminalen med `step`, `run`, og `halt`-modus
+
+---
+
 ## 🔷 Innhold
 
 1. 🎯 Mål og motivasjon
@@ -14,7 +29,7 @@ Et lærings- og utviklingsprosjekt inspirert av Ben Eaters breadboard-datamaskin
 3. 🧪 Simulering og grensesnitt
     - Terminalbasert kjøring
     - Run/Step/Halt-brytere
-    - ASCII-visning av registre
+    - ASCII-visning av registre og klokkesignal
 4. 🧱 Logiske byggesteiner
     - SR-latch i kode
     - RAM-bygging med porter
@@ -34,4 +49,3 @@ Et lærings- og utviklingsprosjekt inspirert av Ben Eaters breadboard-datamaskin
     - `docs/` – Diagrammer og forklaringer
     - `assembler/` – Verktøy for maskinkode
     - `programs/` – Ferdige programmer
-
