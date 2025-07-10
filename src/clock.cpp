@@ -1,13 +1,15 @@
 #include "clock.hpp"
 #include <iostream>
 
-void Clock::tick() {
-    lastState = state;
+ClockEdge Clock::tick() {
     state = !state;
-
-    std::cout << "CLK: " << visual();
-    if (isRisingEdge())  std::cout << "  ↗ RISING edge\n";
-    if (isFallingEdge()) std::cout << "  ↘ FALLING edge\n";
+    if (state) {
+        std::cout << "CLK: ▮  ↗ RISING edge\n";
+        return ClockEdge::Rising;
+    } else {
+        std::cout << "CLK: _  ↘ FALLING edge\n";
+        return ClockEdge::Falling;
+    }
 }
 
 bool Clock::isRisingEdge() const {

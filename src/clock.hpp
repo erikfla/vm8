@@ -3,6 +3,12 @@
 
 enum class Mode { STEP, RUN, HALT };
 
+enum class ClockEdge {
+    None,
+    Rising,
+    Falling
+};
+
 class Clock {
 private:
     bool state = false;
@@ -13,7 +19,7 @@ public:
     Clock() = default;                   // ← Behold default
     Clock(double hz) : frequency(hz) {}  // ← Legg til dette
 
-    void tick();                      // én puls
+    ClockEdge tick();                    // én puls
     bool isHigh() const { return state; }
     bool isRisingEdge() const;       // LOW → HIGH
     bool isFallingEdge() const;      // HIGH → LOW
