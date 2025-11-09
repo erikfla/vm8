@@ -1,12 +1,12 @@
+// src/core/power_switch.hpp
 #pragma once
 
 class PowerSwitch {
 private:
-    bool on = false;
+    bool on_ = false;
 
 public:
-    void turnOn() { on = true; }
-    void turnOff() { on = false; }
-    void toggle() { on = !on; }
-    bool isOn() const { return on; }
+    void turnOn()  { on_ = true; }
+    void turnOff() { on_ = false; }
+    bool isOn() const { return on_; }
 };

@@ -9,19 +9,33 @@ enum class ClockEdge {
     Falling
 };
 
+// To-fase-klokke: φ1 når signalet er høyt, φ2 når det er lavt
+enum class Phase {
+    Phi1, // HIGH
+    Phi2  // LOW
+};
+
 class Clock {
 private:
-    bool state = false;
-    bool lastState = false;
-    double frequency = 1.0; // ← NY (valgfritt, for fremtidig bruk)
+    bool state = false;       // nåværende nivå (LOW = false, HIGH = true)
+    bool lastState = false;   // for edge-deteksjon
+    double frequency = 1.0;   // evt. for senere bruk
 
 public:
-    Clock() = default;                   // ← Behold default
-    Clock(double hz) : frequency(hz) {}  // ← Legg til dette
+    Clock() = default;
+    explicit Clock(double hz) : frequency(hz) {}
 
-    ClockEdge tick();                    // én puls
-    bool isHigh() const { return state; }
-    bool isRisingEdge() const;       // LOW → HIGH
-    bool isFallingEdge() const;      // HIGH → LOW
-    std::string visual() const;      // "▮" eller "_"
+    // Generer ett klokke-"tick" (veksler mellom HIGH og LOW)
+    ClockEdge tick();
+
+    // Status
+    bool isHigh() const;
+    bool isRisingEdge() const;
+    bool isFallingEdge() const;
+    std::string visual() const;  // "▮" for HIGH, "_" for LOW
+
+    // Hvilken halvsyklus er vi i? (φ1 eller φ2)
+    Phase phase() const;
+
+    void reset();
 };

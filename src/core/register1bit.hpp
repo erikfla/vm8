@@ -1,3 +1,6 @@
+#pragma once
+#include "latch.hpp"  // Legg til denne linjen
+
 class Register1bit {
 private:
     DLatch latch;

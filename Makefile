@@ -1,29 +1,86 @@
+# =========================
+#  VM8 MAKEFILE
+# =========================
+
 CXX := g++
-CXXFLAGS := -Wall -std=c++20
+CXXFLAGS := -Wall -std=c++20 -Isrc/core
 
-BIN := bin
-OBJ := build
 SRC := src
+OBJ := build
+BIN := bin
 
-.PHONY: all clean run
+# Sørg for at mappene finnes
+$(shell mkdir -p $(OBJ) $(BIN))
 
-all: $(BIN)/power_switch_demo
+# =========================
+#  DEMOER / PROGRAMMER
+# =========================
+DEMOS := vm8 register_demo tick_watcher clock_and_latch_demo power_switch_demo
 
-$(BIN)/power_switch_demo: $(OBJ)/power_switch_demo.o | $(BIN)
+# =========================
+#  STANDARDMÅL
+# =========================
+
+.PHONY: all clean run-%
+
+all: $(addprefix $(BIN)/,$(DEMOS))
+
+# =========================
+#  HOVEDMASKIN (VM8)
+# =========================
+
+$(BIN)/vm8: \
+    $(SRC)/demos/vm8_main.cpp \
+    $(SRC)/core/machine.cpp \
+    $(SRC)/core/clock.cpp \
+    $(SRC)/core/latch.cpp
 	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJ)/power_switch_demo.o: $(SRC)/power_switch_demo.cpp $(SRC)/power_switch.hpp | $(OBJ)
-	$(CXX) $(CXXFLAGS) -c $< -o $@
+# =========================
+#  REGISTER DEMO
+# =========================
 
-$(BIN):
-	mkdir -p $(BIN)
+$(BIN)/register_demo: \
+    $(SRC)/demos/register_demo.cpp \
+    $(SRC)/core/latch.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
-$(OBJ):
-	mkdir -p $(OBJ)
+# =========================
+#  TICK WATCHER
+# =========================
 
-run: $(BIN)/power_switch_demo
-	@echo "▶️ Kjører power_switch_demo"
-	@./$(BIN)/power_switch_demo
+$(BIN)/tick_watcher: \
+    $(SRC)/demos/tick_watcher.cpp \
+    $(SRC)/core/clock.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
 
+# =========================
+#  CLOCK & LATCH DEMO
+# =========================
+
+$(BIN)/clock_and_latch_demo: \
+    $(SRC)/demos/clock_and_latch_demo.cpp \
+    $(SRC)/core/clock.cpp \
+    $(SRC)/core/latch.cpp
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# =========================
+#  POWER SWITCH DEMO
+# =========================
+
+$(BIN)/power_switch_demo: \
+    $(SRC)/demos/power_switch_demo.cpp | $(BIN)
+	$(CXX) $(CXXFLAGS) $^ -o $@
+
+# =========================
+#  KJØRING
+# =========================
+run-%: $(BIN)/%
+	@echo "▶️ Kjører $*"
+	@./$(BIN)/$*
+
+# =========================
+#  RYDD OPP
+# =========================
 clean:
-	rm -rf $(BIN) $(OBJ)
+	rm -rf $(OBJ) $(BIN)

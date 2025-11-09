@@ -1,44 +1,83 @@
 #include "clock.hpp"
 #include "latch.hpp"
 #include <iostream>
+#include <string>
+
+static std::string phaseToString(Phase p) {
+    return (p == Phase::Phi1) ? "φ1" : "φ2";
+}
+
+static std::string edgeToString(ClockEdge e) {
+    switch (e) {
+        case ClockEdge::Rising:  return "↑";
+        case ClockEdge::Falling: return "↓";
+        default:                 return " ";
+    }
+}
 
 int main() {
-    std::cout << "=== CLOCK OG LATCH DEMO ===\n\n";
+    std::cout << "=== CLOCK + LATCH FRONT PANEL (TO-FASE KLOKKE) ===\n\n";
 
+    DLatch bit;
     Clock clk;
-    DLatch latch;
 
-    bool D = false;
-    bool EN = false;
+    // Start definert: Q = 0
+    bit.reset();
 
-    std::cout << "[1] Initielt: D = " << D << ", EN = " << EN << "\n";
-    std::cout << "Latch output: " << latch.output() << "\n\n";
+    bool d  = false;  // data inn
+    bool en = false;  // enable (skriv/ikke skriv)
 
-    std::cout << "[2] Sett D = 1 og EN = 1 (aktivere skriving til latch)\n";
-    D = true;
-    EN = true;
-    latch.update(D, EN);
-    std::cout << "Latch output: " << latch.output() << "\n\n";
+    std::cout << "Vi viser cycle, halvsyklus (φ1/φ2), CLK, edge, D, EN, Q.\n";
+    std::cout << "Latchen oppdateres KUN på rising edge når EN = 1.\n\n";
 
-    std::cout << "[3] Sett EN = 0 (låser verdien i latch)\n";
-    EN = false;
-    latch.update(D, EN);
-    std::cout << "Latch output (skal fortsatt være 1): " << latch.output() << "\n\n";
+    std::cout << "cycle | phase | CLK | edge | D | EN | Q\n";
+    std::cout << "----------------------------------------\n";
 
-    std::cout << "[4] Nå kobler vi klokka til latch via en simulert rising edge...\n";
-    std::cout << "Vi simulerer D = 0 og clock-edge.\n";
-    D = false;
-    for (int i = 0; i < 3; ++i) {
-        ClockEdge edge = clk.tick(); // simulerer rising/falling
-        if (edge == ClockEdge::Rising) {
-            std::cout << "⏫ RISING edge: oppdaterer latch med D = " << D << "\n";
-            latch.update(D, true); // enable = true kun på rising edge
-        } else {
-            latch.update(D, false); // disable på falling edge
+    // Vi kjører noen hele klokkesykluser,
+    // og endrer D/EN i begynnelsen av noen cycles
+    const int NUM_CYCLES = 4;
+
+    for (int cycle = 0; cycle < NUM_CYCLES; ++cycle) {
+        // Juster D og EN ved starten av hver cycle (φ1)
+        if (cycle == 0) {
+            d = false;
+            en = false;  // latch holder 0 (etter reset)
+        } else if (cycle == 1) {
+            d = true;
+            en = true;   // skriv 1 inn
+        } else if (cycle == 2) {
+            en = false;  // hold verdien (skal holde 1)
+        } else if (cycle == 3) {
+            d = false;
+            en = true;   // skriv 0 inn
         }
-        std::cout << "Latch output: " << latch.output() << "\n\n";
+
+        // Hver cycle består av to halvsykluser: φ1 (HIGH) og φ2 (LOW)
+        for (int half = 0; half < 2; ++half) {
+            ClockEdge edge = clk.tick();
+            Phase ph = clk.phase();
+
+            // Oppdater latch KUN på rising edge
+            if (edge == ClockEdge::Rising) {
+                bit.update(d, en);
+            }
+
+            std::cout << "  " << cycle
+                      << "    | " << phaseToString(ph)
+                      << "   | " << clk.visual()
+                      << "   | " << edgeToString(edge)
+                      << "    | " << d
+                      << " | " << en
+                      << "  | " << bit.output()
+                      << "\n";
+        }
     }
 
-    std::cout << "=== DEMO FERDIG ===\n";
+    std::cout << "\nForklaring:\n";
+    std::cout << "- φ1 (HIGH): vi lar rising edge oppdatere latchen hvis EN = 1.\n";
+    std::cout << "- φ2 (LOW): vi endrer ikke latchen, men CLK går lav og forbereder neste syklus.\n";
+    std::cout << "- Når EN = 0, holder Q verdien sin uansett hva D gjør.\n";
+
+    std::cout << "\n=== DEMO FERDIG ===\n";
     return 0;
 }

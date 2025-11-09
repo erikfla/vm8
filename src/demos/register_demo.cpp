@@ -4,6 +4,9 @@
 int main() {
     Register1bit reg;
 
+    // I Ben Eater-ånd: vi "trykker på reset" før vi bruker registeret
+    reg.reset();
+
     std::cout << "1. Initial verdi (skal være 0): " << reg.value() << "\n";
 
     reg.load(true, true); // Sett 1 med enable = true
