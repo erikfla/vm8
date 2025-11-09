@@ -30,7 +30,7 @@ all: $(addprefix $(BIN)/,$(DEMOS))
 # =========================
 
 $(BIN)/vm8: \
-    $(SRC)/demos/vm8_main.cpp \
+    $(SRC)/frontends/terminal_frontpanel.cpp \
     $(SRC)/core/machine.cpp \
     $(SRC)/core/clock.cpp \
     $(SRC)/core/latch.cpp

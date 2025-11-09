@@ -1,6 +1,7 @@
 // src/demos/vm8_main.cpp
 #include "machine.hpp"
 #include "power_switch.hpp"
+#include "manual_pulse.hpp"
 
 #include <iostream>
 #include <thread>
@@ -8,18 +9,20 @@
 
 enum class RunMode {
     MANUAL,  // klokka går bare når vi stepper
-    AUTO     // klokka tikker kontinuerlig
+    AUTO     // klokka tikker kontinuerlig (per kommando-loop)
 };
 
 int main() {
     Machine m;
     PowerSwitch power;
+    ManualPulseGenerator stepper(m);  // ← NY!
+
     RunMode mode = RunMode::MANUAL;
 
     std::cout << "=== VM8 frontpanel ===\n";
     std::cout << "o = power on,  p = power off\n";
     std::cout << "a = auto (run), m = manual\n";
-    std::cout << "s = step (i MANUAL)\n";
+    std::cout << "s = step (EN HEL klokkeperiode i MANUAL)\n";
     std::cout << "x = reset,      q = quit\n\n";
 
     bool quit = false;
@@ -54,7 +57,7 @@ int main() {
         case 'p':
         case 'P':
             power.turnOff();
-            mode = RunMode::MANUAL; // når vi slår av strøm, havner vi i MANUAL
+            mode = RunMode::MANUAL;
             std::cout << "Strøm AV.\n";
             break;
 
@@ -87,8 +90,8 @@ int main() {
         case 's':
         case 'S':
             if (power.isOn() && mode == RunMode::MANUAL && !m.isHalted()) {
-                // én manuell klokkeimpuls
-                m.tick();
+                // EN HEL klokkeperiode: RISING + FALLING
+                stepper.singlePulse();
             } else {
                 std::cout << "(kan ikke steppe nå – sjekk power/mode/HLT)\n";
             }
@@ -99,10 +102,7 @@ int main() {
             break;
         }
 
-        // AUTO-modus: tikker av seg selv så lenge:
-        //  - vi har strøm
-        //  - vi er i AUTO
-        //  - maskinen er ikke haltet internt
+        // AUTO-modus: én tick per loop-iterasjon (kan gjøres mer "live" senere)
         if (power.isOn() && mode == RunMode::AUTO && !m.isHalted()) {
             m.tick();
             std::this_thread::sleep_for(std::chrono::milliseconds(100));

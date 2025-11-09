@@ -1,7 +1,6 @@
+// src/core/clock.hpp
 #pragma once
 #include <string>
-
-enum class Mode { STEP, RUN, HALT };
 
 enum class ClockEdge {
     None,
@@ -9,33 +8,26 @@ enum class ClockEdge {
     Falling
 };
 
-// To-fase-klokke: φ1 når signalet er høyt, φ2 når det er lavt
-enum class Phase {
-    Phi1, // HIGH
-    Phi2  // LOW
-};
-
 class Clock {
 private:
-    bool state = false;       // nåværende nivå (LOW = false, HIGH = true)
-    bool lastState = false;   // for edge-deteksjon
-    double frequency = 1.0;   // evt. for senere bruk
+    bool state = false;
+    bool lastState = false;
+    double frequency = 1.0; // evt. til senere bruk
 
 public:
     Clock() = default;
-    explicit Clock(double hz) : frequency(hz) {}
+    Clock(double hz) : frequency(hz) {}
 
-    // Generer ett klokke-"tick" (veksler mellom HIGH og LOW)
+    // Sett klokka tilbake til definert starttilstand
+    void reset();
+
+    // Én halvsyklus: toggle state og returner edge-typen
     ClockEdge tick();
 
-    // Status
-    bool isHigh() const;
-    bool isRisingEdge() const;
-    bool isFallingEdge() const;
-    std::string visual() const;  // "▮" for HIGH, "_" for LOW
+    bool isHigh() const { return state; }
 
-    // Hvilken halvsyklus er vi i? (φ1 eller φ2)
-    Phase phase() const;
+    bool isRisingEdge() const { return (!lastState && state); }   // LOW → HIGH
+    bool isFallingEdge() const { return (lastState && !state); }  // HIGH → LOW
 
-    void reset();
+    std::string visual() const { return state ? "▮" : "_"; }
 };
