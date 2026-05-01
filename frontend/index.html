@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="no">
+<head>
+<meta charset="UTF-8">
+<title>VM8 Frontpanel</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    background: #ddd;
+    color: #222;
+    font-family: 'Courier New', monospace;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 40px 20px;
+  }
+
+  .panel {
+    background: #f5f2ec;
+    border: 2px solid #aaa;
+    border-radius: 6px;
+    padding: 28px 36px;
+    width: 780px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 #fff;
+  }
+
+  .panel-title {
+    text-align: center;
+    margin-bottom: 24px;
+    border-bottom: 1px solid #ccc;
+    padding-bottom: 14px;
+  }
+  .panel-title span { font-size: 20px; font-weight: bold; letter-spacing: 10px; color: #222; display: block; }
+  .panel-title small { font-size: 9px; letter-spacing: 5px; text-transform: uppercase; color: #999; }
+
+  /* ── Seksjoner ── */
+  .section { margin-bottom: 20px; }
+  .section-label {
+    font-size: 9px; letter-spacing: 4px; text-transform: uppercase;
+    color: #aaa; margin-bottom: 8px; border-bottom: 1px solid #e0e0e0; padding-bottom: 3px;
+  }
+
+  /* ── LED rad (for registere og bus) ── */
+  .led-register {
+    display: flex;
+    align-items: flex-end;
+    gap: 4px;
+  }
+
+  .led-register .reg-label {
+    font-size: 9px; letter-spacing: 2px; color: #888;
+    min-width: 36px; text-align: right; margin-right: 6px;
+    padding-bottom: 2px;
+  }
+
+  .led-register .bit-group {
+    display: flex; gap: 4px; margin-right: 6px;
+  }
+
+  .led-register .reg-value {
+    font-size: 11px; color: #aaa; margin-left: 8px;
+    min-width: 40px; padding-bottom: 2px;
+  }
+
+  /* ── LED ── */
+  .led {
+    width: 14px; height: 14px; border-radius: 50%;
+    background: #ccc; border: 1px solid #aaa;
+    transition: background 0.05s, box-shadow 0.05s;
+    flex-shrink: 0;
+  }
+  .led.on        { background: #cc1100; box-shadow: 0 0 5px #ff2200aa; border-color: #aa1100; }
+  .led.yellow.on { background: #cc8800; box-shadow: 0 0 5px #ffaa00aa; border-color: #aa7700; }
+  .led.green.on  { background: #119922; box-shadow: 0 0 5px #00cc44aa; border-color: #118822; }
+  .led.blue.on   { background: #1144cc; box-shadow: 0 0 5px #2266ffaa; border-color: #0033aa; }
+
+  .led-labeled {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+  }
+  .led-labeled .led-label {
+    font-size: 7px; letter-spacing: 1px; color: #aaa; text-align: center;
+  }
+
+  /* ── Klokke rad ── */
+  .clock-row { display: flex; align-items: center; gap: 16px; }
+
+  .edge-indicator {
+    font-size: 20px; color: #ccc; transition: color 0.08s;
+    font-weight: bold; width: 24px; text-align: center; line-height: 1;
+  }
+  .edge-indicator.rising  { color: #119922; }
+  .edge-indicator.falling { color: #cc8800; }
+
+  .scope-wrap {
+    flex: 1; background: #fff; border: 1px solid #ccc; border-radius: 3px; padding: 5px;
+  }
+  canvas#scope { display: block; width: 100%; height: 50px; }
+
+  /* ── Kontrollsignaler ── */
+  .ctrl-grid {
+    display: flex; flex-wrap: wrap; gap: 10px 16px;
+  }
+
+  /* ── Minne ── */
+  .memory-grid {
+    display: grid;
+    grid-template-columns: repeat(8, 1fr);
+    gap: 3px;
+  }
+
+  .mem-cell {
+    background: #e8e8e8;
+    border: 1px solid #ccc;
+    border-radius: 2px;
+    padding: 3px 4px;
+    font-size: 9px;
+    text-align: center;
+    color: #bbb;
+  }
+
+  .mem-cell .mem-addr { color: #bbb; font-size: 8px; }
+  .mem-cell .mem-val  { color: #888; font-size: 10px; font-weight: bold; }
+
+  .mem-cell.active {
+    background: #fffbe6;
+    border-color: #cc8800;
+  }
+  .mem-cell.active .mem-addr { color: #cc8800; }
+  .mem-cell.active .mem-val  { color: #333; }
+
+  /* ── Output display ── */
+  .out-display {
+    display: flex; align-items: center; gap: 16px;
+  }
+  .seven-seg {
+    font-size: 36px; font-weight: bold; color: #cc1100;
+    background: #111; padding: 6px 14px; border-radius: 3px;
+    min-width: 80px; text-align: center;
+    font-family: 'Courier New', monospace;
+    box-shadow: inset 0 2px 6px rgba(0,0,0,0.5);
+    letter-spacing: 4px;
+  }
+
+  /* ── Kontrollknapper ── */
+  .controls { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .btn {
+    font-family: 'Courier New', monospace; font-size: 9px; letter-spacing: 2px;
+    text-transform: uppercase; padding: 6px 12px; border-radius: 3px;
+    border: 1px solid #bbb; background: #eee; color: #444; cursor: pointer;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1), inset 0 1px 0 #fff;
+    transition: background 0.1s;
+  }
+  .btn:hover { background: #e0e0e0; }
+  .btn:active { box-shadow: inset 0 1px 3px rgba(0,0,0,0.2); transform: translateY(1px); }
+  .btn.active { background: #333; color: #fff; border-color: #222; }
+  .btn-sep { width: 1px; height: 22px; background: #ccc; margin: 0 2px; }
+
+  /* ── Tilkobling ── */
+  .conn-bar {
+    display: flex; align-items: center; gap: 8px; font-size: 10px; color: #bbb;
+    margin-top: 20px; padding-top: 12px; border-top: 1px solid #ddd;
+  }
+  .conn-dot { width: 7px; height: 7px; border-radius: 50%; background: #ccc; }
+  .conn-dot.connected { background: #119922; box-shadow: 0 0 4px #00cc44; }
+  .conn-dot.error     { background: #cc1100; }
+  .tick-counter { margin-left: auto; color: #ccc; font-size: 10px; letter-spacing: 2px; }
+
+  .two-col { display: flex; gap: 24px; }
+  .two-col > div { flex: 1; }
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="panel-title">
+    <span>VM8</span>
+    <small>Virtual Machine · Frontpanel</small>
+  </div>
+
+  <!-- ── Klokke ── -->
+  <div class="section">
+    <div class="section-label">Clock</div>
+    <div class="clock-row">
+      <div class="led-labeled">
+        <div class="led yellow" id="led-clk"></div>
+        <div class="led-label">CLK</div>
+      </div>
+      <div class="led-labeled">
+        <div class="edge-indicator" id="edge-symbol">–</div>
+        <div class="led-label" id="edge-label">EDGE</div>
+      </div>
+      <div class="scope-wrap">
+        <canvas id="scope" width="500" height="50"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Bus ── -->
+  <div class="section">
+    <div class="section-label">Bus · W</div>
+    <div class="led-register">
+      <span class="reg-label">BUS</span>
+      <div class="bit-group" id="reg-BUS"></div>
+      <span class="reg-value" id="val-BUS">–</span>
+    </div>
+  </div>
+
+  <!-- ── Registere ── -->
+  <div class="section">
+    <div class="section-label">Registers</div>
+    <div style="display:flex; flex-direction:column; gap:8px;">
+      <div class="led-register">
+        <span class="reg-label">PC</span>
+        <div class="bit-group" id="reg-PC"></div>
+        <span class="reg-value" id="val-PC">–</span>
+      </div>
+      <div class="led-register">
+        <span class="reg-label">MAR</span>
+        <div class="bit-group" id="reg-MAR"></div>
+        <span class="reg-value" id="val-MAR">–</span>
+      </div>
+      <div class="led-register">
+        <span class="reg-label">IR</span>
+        <div class="bit-group" id="reg-IR-hi"></div>
+        <div class="bit-group" id="reg-IR-lo"></div>
+        <span class="reg-value" id="val-IR">–</span>
+      </div>
+      <div class="led-register">
+        <span class="reg-label">A</span>
+        <div class="bit-group" id="reg-A"></div>
+        <span class="reg-value" id="val-A">–</span>
+      </div>
+      <div class="led-register">
+        <span class="reg-label">B</span>
+        <div class="bit-group" id="reg-B"></div>
+        <span class="reg-value" id="val-B">–</span>
+      </div>
+      <div class="led-register">
+        <span class="reg-label">ALU</span>
+        <div class="bit-group" id="reg-ALU"></div>
+        <span class="reg-value" id="val-ALU">–</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Flags og Output ── -->
+  <div class="two-col">
+    <div class="section">
+      <div class="section-label">Flags</div>
+      <div style="display:flex; gap:16px;">
+        <div class="led-labeled">
+          <div class="led" id="led-CF"></div>
+          <div class="led-label">CF</div>
+        </div>
+        <div class="led-labeled">
+          <div class="led" id="led-ZF"></div>
+          <div class="led-label">ZF</div>
+        </div>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Output</div>
+      <div class="out-display">
+        <div class="led-register">
+          <div class="bit-group" id="reg-OUT"></div>
+        </div>
+        <div class="seven-seg" id="seven-seg">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Kontrollsignaler ── -->
+  <div class="section">
+    <div class="section-label">Control Signals</div>
+    <div class="ctrl-grid" id="ctrl-grid">
+      <!-- Populeres automatisk -->
+    </div>
+  </div>
+
+  <!-- ── Minne ── -->
+  <div class="section">
+    <div class="section-label">RAM · 16 × 8</div>
+    <div class="memory-grid" id="memory-grid"></div>
+  </div>
+
+  <!-- ── Kontroll ── -->
+  <div class="section">
+    <div class="section-label">Control</div>
+    <div class="controls">
+      <button class="btn" onclick="sendCmd('power_on')">Power On</button>
+      <button class="btn" onclick="sendCmd('power_off')">Power Off</button>
+      <div class="btn-sep"></div>
+      <button class="btn active" id="btn-manual" onclick="setMode('manual')">Manual</button>
+      <button class="btn"        id="btn-auto"   onclick="setMode('auto')">Auto</button>
+      <div class="btn-sep"></div>
+      <button class="btn" id="btn-step"  onclick="sendCmd('step')">Step</button>
+      <button class="btn" onclick="sendCmd('reset')">Reset</button>
+    </div>
+  </div>
+
+  <div class="conn-bar">
+    <div class="conn-dot" id="conn-dot"></div>
+    <span id="conn-label">Ikke tilkoblet – start VM8 og bridge.py</span>
+    <span class="tick-counter" id="tick-counter">TICK 0</span>
+  </div>
+</div>
+
+<script>
+// ── Kontrollsignaler (Ben Eater SAP-1 + VM8) ────────────
+const CTRL_SIGNALS = [
+  'HLT','MI','RI','RO','IO','II','AI','AO','EO','SU','BI','OI','CE','CO','J','FI'
+];
+
+// ── LED-register builder ─────────────────────────────────
+function buildBitLeds(containerId, bits, color) {
+  const el = document.getElementById(containerId);
+  if (!el) return;
+  el.innerHTML = '';
+  for (let i = bits - 1; i >= 0; i--) {
+    const led = document.createElement('div');
+    led.className = 'led' + (color ? ' ' + color : '');
+    led.id = containerId + '-b' + i;
+    el.appendChild(led);
+  }
+}
+
+function setRegLeds(containerId, value, bits) {
+  for (let i = 0; i < bits; i++) {
+    const el = document.getElementById(containerId + '-b' + i);
+    if (el) el.classList.toggle('on', !!(value & (1 << i)));
+  }
+}
+
+// Bygg registre
+buildBitLeds('reg-BUS',   8, '');
+buildBitLeds('reg-PC',    4, 'green');
+buildBitLeds('reg-MAR',   4, 'yellow');
+buildBitLeds('reg-IR-hi', 4, '');       // opcode
+buildBitLeds('reg-IR-lo', 4, 'blue');   // operand
+buildBitLeds('reg-A',     8, '');
+buildBitLeds('reg-B',     8, '');
+buildBitLeds('reg-ALU',   8, '');
+buildBitLeds('reg-OUT',   8, '');
+
+// ── Kontrollsignaler ─────────────────────────────────────
+const ctrlGrid = document.getElementById('ctrl-grid');
+CTRL_SIGNALS.forEach(sig => {
+  const item = document.createElement('div');
+  item.className = 'led-labeled';
+  item.innerHTML = `<div class="led" id="ctrl-${sig}"></div><div class="led-label">${sig}</div>`;
+  ctrlGrid.appendChild(item);
+});
+
+function setCtrl(sig, val) {
+  const el = document.getElementById('ctrl-' + sig);
+  if (el) el.classList.toggle('on', !!val);
+}
+
+// ── Minne ────────────────────────────────────────────────
+const memGrid = document.getElementById('memory-grid');
+const memCells = [];
+for (let i = 0; i < 16; i++) {
+  const cell = document.createElement('div');
+  cell.className = 'mem-cell';
+  cell.innerHTML = `<div class="mem-addr">${i.toString(16).toUpperCase()}</div><div class="mem-val" id="mem-${i}">--</div>`;
+  cell.id = 'memcell-' + i;
+  memGrid.appendChild(cell);
+  memCells.push(cell);
+}
+
+function updateMemory(ram, activeAddr) {
+  for (let i = 0; i < 16; i++) {
+    const cell = document.getElementById('memcell-' + i);
+    const val  = document.getElementById('mem-' + i);
+    if (ram && ram[i] !== undefined) {
+      val.textContent = ram[i].toString(16).toUpperCase().padStart(2, '0');
+    }
+    cell.classList.toggle('active', i === activeAddr);
+  }
+}
+updateMemory(null, -1);
+
+// ── Oscilloskop ──────────────────────────────────────────
+const canvas = document.getElementById('scope');
+const ctx    = canvas.getContext('2d');
+const W = 500, H = 50;
+canvas.width = W; canvas.height = H;
+const scopeHistory = new Array(W).fill(0);
+
+function pushScope(high) {
+  scopeHistory.push(high ? 1 : 0);
+  if (scopeHistory.length > W) scopeHistory.shift();
+  ctx.clearRect(0, 0, W, H);
+  ctx.strokeStyle = '#eee'; ctx.lineWidth = 1;
+  for (let x = 0; x < W; x += 25) {
+    ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x, H); ctx.stroke();
+  }
+  ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
+  ctx.beginPath(); ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
+  const lo = H - 8, hi = 8;
+  for (let i = 0; i < scopeHistory.length; i++) {
+    const y = scopeHistory[i] ? hi : lo;
+    if (i === 0) { ctx.moveTo(i, y); continue; }
+    const py = scopeHistory[i-1] ? hi : lo;
+    if (py !== y) { ctx.lineTo(i, py); ctx.lineTo(i, y); } else ctx.lineTo(i, y);
+  }
+  ctx.stroke();
+}
+pushScope(0);
+
+// ── Edge ─────────────────────────────────────────────────
+const edgeSym = document.getElementById('edge-symbol');
+const edgeLbl = document.getElementById('edge-label');
+let edgeTimer = null;
+function showEdge(edge) {
+  clearTimeout(edgeTimer);
+  edgeSym.className = 'edge-indicator';
+  if (edge === 'RISING')       { edgeSym.textContent = '↑'; edgeSym.classList.add('rising');  edgeLbl.textContent = 'RISING'; }
+  else if (edge === 'FALLING') { edgeSym.textContent = '↓'; edgeSym.classList.add('falling'); edgeLbl.textContent = 'FALLING'; }
+  else { edgeSym.textContent = '–'; edgeLbl.textContent = 'EDGE'; return; }
+  edgeTimer = setTimeout(() => { edgeSym.className = 'edge-indicator'; edgeSym.textContent = '–'; edgeLbl.textContent = 'EDGE'; }, 350);
+}
+
+// ── State oppdatering ────────────────────────────────────
+let tickCount = 0;
+
+function applyState(state) {
+  tickCount++;
+
+  // Klokke
+  const clkHigh = state.clock === 'HIGH';
+  document.getElementById('led-clk').classList.toggle('on', clkHigh);
+  pushScope(clkHigh);
+  if (state.edge) showEdge(state.edge);
+
+  // Bus
+  if (state.bus !== undefined) {
+    setRegLeds('reg-BUS', state.bus, 8);
+    document.getElementById('val-BUS').textContent = '0x' + state.bus.toString(16).toUpperCase().padStart(2,'0');
+  }
+
+  // Registere
+  const regs = state.registers || {};
+  const regDefs = [
+    { key: 'PC',  id: 'reg-PC',  bits: 4 },
+    { key: 'MAR', id: 'reg-MAR', bits: 4 },
+    { key: 'A',   id: 'reg-A',   bits: 8 },
+    { key: 'B',   id: 'reg-B',   bits: 8 },
+    { key: 'ALU', id: 'reg-ALU', bits: 8 },
+    { key: 'OUT', id: 'reg-OUT', bits: 8 },
+  ];
+  regDefs.forEach(r => {
+    if (regs[r.key] !== undefined) {
+      setRegLeds(r.id, regs[r.key], r.bits);
+      const valEl = document.getElementById('val-' + r.key);
+      if (valEl) valEl.textContent = regs[r.key] + ' (0x' + regs[r.key].toString(16).toUpperCase() + ')';
+    }
+  });
+
+  // IR spesialhåndtering (delt i opcode/operand)
+  if (regs['IR'] !== undefined) {
+    setRegLeds('reg-IR-hi', (regs['IR'] >> 4) & 0xF, 4);
+    setRegLeds('reg-IR-lo', regs['IR'] & 0xF, 4);
+    document.getElementById('val-IR').textContent = '0x' + regs['IR'].toString(16).toUpperCase().padStart(2,'0');
+  }
+
+  // Output display (7-seg)
+  if (regs['OUT'] !== undefined) {
+    document.getElementById('seven-seg').textContent = regs['OUT'].toString().padStart(3, ' ');
+  }
+
+  // Flags
+  const flags = state.flags || {};
+  document.getElementById('led-CF').classList.toggle('on', !!flags['CF']);
+  document.getElementById('led-ZF').classList.toggle('on', !!flags['ZF']);
+
+  // Kontrollsignaler
+  const ctrl = state.control || {};
+  CTRL_SIGNALS.forEach(sig => setCtrl(sig, ctrl[sig]));
+
+  // HLT fra SignalBus (bakoverkompatibelt)
+  if (state.signals && state.signals['HLT'] !== undefined) {
+    setCtrl('HLT', state.signals['HLT']);
+  }
+  if (state.halted) setCtrl('HLT', true);
+
+  // Minne
+  if (state.ram !== undefined || regs['MAR'] !== undefined) {
+    updateMemory(state.ram, regs['MAR']);
+  }
+
+  // Mode
+  if (state.mode) {
+    currentMode = state.mode;
+    document.getElementById('btn-manual').classList.toggle('active', state.mode === 'manual');
+    document.getElementById('btn-auto').classList.toggle('active',   state.mode === 'auto');
+  }
+
+  document.getElementById('tick-counter').textContent = 'TICK ' + tickCount;
+}
+
+// ── WebSocket og kommandoer ───────────────────────────────
+let ws = null;
+let currentMode = 'manual';
+
+function sendCmd(cmd) {
+  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ cmd }));
+}
+
+function setMode(mode) {
+  currentMode = mode;
+  document.getElementById('btn-manual').classList.toggle('active', mode === 'manual');
+  document.getElementById('btn-auto').classList.toggle('active',   mode === 'auto');
+  sendCmd(mode);
+}
+
+// ── Demo ─────────────────────────────────────────────────
+// Simulerer et enkelt program: LDA 14, OUT, LDA 15, OUT, HLT
+let demoRunning = false, demoClk = false, demoTick = 0;
+const demoRam = [
+  0x1E, 0x4F, 0x1F, 0x4F, 0xF0,
+  0,0,0,0,0,0,0,0,0,
+  42, 99
+];
+const demoSteps = [
+  { PC:0, MAR:0, IR:0x00, A:0,  bus:0,    control:{CO:1,MI:1} },
+  { PC:1, MAR:0, IR:0x1E, A:0,  bus:0x1E, control:{RO:1,II:1,CE:1} },
+  { PC:1, MAR:14,IR:0x1E, A:0,  bus:0x0E, control:{IO:1,MI:1} },
+  { PC:1, MAR:14,IR:0x1E, A:42, bus:42,   control:{RO:1,AI:1} },
+  { PC:1, MAR:1, IR:0x4F, A:42, bus:1,    control:{CO:1,MI:1} },
+  { PC:2, MAR:1, IR:0x4F, A:42, bus:0x4F, control:{RO:1,II:1,CE:1} },
+  { PC:2, MAR:1, IR:0x4F, A:42, bus:42,   control:{AO:1,OI:1} },
+];
+let demoStep = 0;
+let demoInterval = null;
+
+function runDemo() {
+  if (demoRunning) return;
+  demoRunning = true;
+  document.getElementById('conn-label').textContent = 'Demo-modus (ingen VM8 tilkoblet)';
+  demoInterval = setInterval(() => {
+    if (currentMode !== 'auto') return;
+    demoClk = !demoClk;
+    const s = demoSteps[demoStep % demoSteps.length];
+    applyState({
+      clock: demoClk ? 'HIGH' : 'LOW',
+      edge:  demoClk ? 'RISING' : 'FALLING',
+      halted: false,
+      bus: s.bus,
+      registers: { PC: s.PC, MAR: s.MAR, IR: s.IR, A: s.A, B: 0, ALU: s.A, OUT: s.A },
+      flags: { CF: false, ZF: s.A === 0 },
+      control: s.control,
+      ram: demoRam,
+      mode: currentMode,
+    });
+    if (demoClk) demoStep++;
+  }, 400);
+}
+
+function connect() {
+  try { ws = new WebSocket('ws://localhost:8765'); } catch(e) { runDemo(); return; }
+  ws.onopen = () => {
+    clearInterval(demoInterval); demoRunning = false;
+    document.getElementById('conn-dot').className = 'conn-dot connected';
+    document.getElementById('conn-label').textContent = 'Tilkoblet VM8';
+  };
+  ws.onmessage = (ev) => { try { applyState(JSON.parse(ev.data)); } catch(e) {} };
+  ws.onclose = () => {
+    document.getElementById('conn-dot').className = 'conn-dot error';
+    document.getElementById('conn-label').textContent = 'Mistet forbindelse – prøver igjen om 3s...';
+    setTimeout(connect, 3000);
+  };
+}
+
+connect();
+setTimeout(() => {
+  if (!demoRunning && !document.getElementById('conn-dot').classList.contains('connected')) runDemo();
+}, 1000);
+</script>
+</body>
+</html>

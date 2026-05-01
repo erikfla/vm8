@@ -57,6 +57,15 @@ void Machine::fetchAndExecute() {
             return;
     }
 
+// JSON til stdout (for bridge.py)
+std::cout << "{\"clock\":\""  << (clk.isHigh() ? "HIGH" : "LOW")
+          << "\",\"pc\":"     << (int)pc
+          << ",\"ir\":"       << (int)ir
+          << ",\"a\":"        << (int)a
+          << ",\"out\":"      << (int)out
+          << ",\"halted\":"   << (halted ? "true" : "false")
+          << "}\n" << std::flush;
+
     pc++;
     if (pc >= 16) pc = 0;
 
