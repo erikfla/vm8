@@ -1,3 +1,4 @@
+.DEFAULT_GOAL := vm8
 CXX      = g++
 CXXFLAGS = -std=c++17 -Wall -Wextra -Isrc -Isrc/core -Isrc/components
 

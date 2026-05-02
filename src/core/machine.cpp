@@ -7,7 +7,7 @@ Machine::Machine() {
 }
 
 void Machine::reset() {
-    step_   = 0;
+    step_.clear();
     halted_ = false;
     clk_.reset();
     bus_.reset();
@@ -44,10 +44,10 @@ void Machine::tick() {
 
 void Machine::risingEdge() {
     uint8_t     opcode = (regIR_.value() >> 4) & 0xF;
-    ControlWord cw     = MICROCODE[opcode][step_];
+    ControlWord cw     = MICROCODE[opcode][step_.value()];
     bus_.setCtrl(cw);
 
-    std::cout << "[↑ step=" << (int)step_
+    std::cout << "[↑ step=" << (int)step_.value()
               << " op=0x"  << std::hex << (int)opcode
               << " ctrl=0x" << (int)cw
               << " PC=" << std::dec << (int)regPC_.value()
@@ -86,13 +86,10 @@ void Machine::fallingEdge() {
     if (bus_.ctrl() & OI)
         std::cout << "[OUT] " << std::dec << (int)regOUT_.value() << "\n";
 
-    if (halted_) return;
-
     // ── Step-teller (invertert klokke = falling edge) ─────
-    step_++;
-    uint8_t nextOpcode = (regIR_.value() >> 4) & 0xF;  // IR kan ha endret seg
-    if (step_ >= MAX_STEPS || MICROCODE[nextOpcode][step_] == NONE)
-        step_ = 0;
+    // StepCounter teller alltid – akkurat som 74LS163.
+    // HLT stopper klokken, ikke telleren.
+    step_.onFallingEdge();
 }
 
 void Machine::loadProgram(const std::array<uint8_t, 16>& program) {

@@ -8,6 +8,7 @@
 #include "../components/prog_counter.hpp"
 #include "../components/bus_alu.hpp"
 #include "../components/bus_ram.hpp"
+#include "../components/step_counter.hpp"
 #include <array>
 #include <cstdint>
 
@@ -49,7 +50,7 @@ public:
     uint8_t regPC()  const { return regPC_.value(); }
     uint8_t regIR()  const { return regIR_.value(); }
     uint8_t regOUT() const { return regOUT_.value(); }
-    uint8_t regStep()const { return step_; }
+    uint8_t regStep()const { return step_.value(); }
 
     uint8_t     ramAt(uint8_t addr) const { return ram_.at(addr); }
     ControlWord activeControl()     const { return bus_.ctrl(); }
@@ -72,8 +73,8 @@ private:
     ProgCounter  regPC_   { bus_                };
     BusRAM       ram_     { bus_, regMAR_        };
     BusALU       alu_     { bus_, regA_, regB_   };
+    StepCounter  step_;
 
-    uint8_t step_   = 0;
     bool    halted_ = false;
 
     void risingEdge();
