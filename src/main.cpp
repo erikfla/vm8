@@ -1,5 +1,6 @@
 // src/main.cpp
 #include "core/machine.hpp"
+#include "control.hpp"
 #include "httplib.h"
 
 #include <iostream>
@@ -42,7 +43,25 @@ std::string toJSON() {
         o << (int)machine.ramAt(i);
         if (i < 15) o << ",";
     }
-    o << "]}";
+    o << "]";
+    o << ",\"control\":{"
+      << "\"HLT\":" << ((machine.activeControl() & HLT) ? "true" : "false") << ","
+      << "\"MI\":"  << ((machine.activeControl() & MI)  ? "true" : "false") << ","
+      << "\"RI\":"  << ((machine.activeControl() & RI)  ? "true" : "false") << ","
+      << "\"RO\":"  << ((machine.activeControl() & RO)  ? "true" : "false") << ","
+      << "\"IO\":"  << ((machine.activeControl() & IO)  ? "true" : "false") << ","
+      << "\"II\":"  << ((machine.activeControl() & II)  ? "true" : "false") << ","
+      << "\"AI\":"  << ((machine.activeControl() & AI)  ? "true" : "false") << ","
+      << "\"AO\":"  << ((machine.activeControl() & AO)  ? "true" : "false") << ","
+      << "\"EO\":"  << ((machine.activeControl() & EO)  ? "true" : "false") << ","
+      << "\"SU\":"  << ((machine.activeControl() & SU)  ? "true" : "false") << ","
+      << "\"BI\":"  << ((machine.activeControl() & BI)  ? "true" : "false") << ","
+      << "\"OI\":"  << ((machine.activeControl() & OI)  ? "true" : "false") << ","
+      << "\"CE\":"  << ((machine.activeControl() & CE)  ? "true" : "false") << ","
+      << "\"CO\":"  << ((machine.activeControl() & CO)  ? "true" : "false") << ","
+      << "\"J\":"   << ((machine.activeControl() & J)   ? "true" : "false") << ","
+      << "\"FI\":"  << ((machine.activeControl() & FI)  ? "true" : "false")
+      << "}}";
     return o.str();
 }
 

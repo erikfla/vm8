@@ -300,7 +300,7 @@
   <div class="section">
     <div class="section-label">Control</div>
     <div class="controls">
-      <button class="btn" onclick="sendCmd('reset')">Reset</button>
+      <button class="btn" onclick="sendCmd('reset'); resetScope()">Reset</button>
       <button class="btn" onclick="sendCmd('power_on')">Power On</button>
       <button class="btn" onclick="sendCmd('power_off')">Power Off</button>
     </div>
@@ -428,6 +428,11 @@ function pushScope(high, hz) {
   ctx.stroke();
 }
 pushScope(0, 1);
+
+function resetScope() {
+    scopeHistory.fill(0);
+    ctx.clearRect(0, 0, W, H);
+}
 
 // ── Edge ─────────────────────────────────────────────────
 const edgeSym = document.getElementById('edge-symbol');

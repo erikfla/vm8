@@ -2,6 +2,8 @@
 #pragma once
 #include "clock.hpp"
 #include "signal_bus.hpp"
+#include "control.hpp"
+#include "microcode.hpp"
 #include "../components/register8.hpp"
 #include "../components/ram.hpp"
 #include <array>
@@ -39,6 +41,11 @@ public:
     uint8_t          regOUT()  const { return out; }
     uint8_t          ramAt(uint8_t addr) const { return ram[addr]; }
 
+    ControlWord activeControl() const { return controlWord; }
+    bool        flagC()         const { return flagCarry; }
+    bool        flagZ()         const { return flagZero; }
+    uint8_t     regStep()       const { return step; }
+
     void loadProgram(const std::array<uint8_t, 16>& program);
 
 private:
@@ -58,6 +65,12 @@ private:
 
     bool halted = false;
 
+    uint8_t     step        = 0;
+    ControlWord controlWord = NONE;
+    bool        flagCarry   = false;
+    bool        flagZero    = false;
+
     void handleEdge(Edge edge);
     void fetchAndExecute();
+    void executeStep();
 };
