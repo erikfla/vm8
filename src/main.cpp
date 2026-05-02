@@ -1,8 +1,9 @@
 // src/main.cpp
 #include "core/machine.hpp"
-#include "control.hpp"
+#include "core/control.hpp"
 #include "httplib.h"
 
+#include <atomic>
 #include <iostream>
 #include <chrono>
 #include <thread>

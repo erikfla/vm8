@@ -18,7 +18,7 @@ enum class Edge {
 
 class Clock : public Component {
 public:
-    void set(const std::string& pin, bool value) override {}
+    void set(const std::string& /*pin*/, bool /*value*/) override {}
     bool get(const std::string& pin) const override;
 
     // Én halvpuls – returnerer kanten som skjedde

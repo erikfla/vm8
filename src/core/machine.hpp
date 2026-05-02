@@ -4,22 +4,31 @@
 #include "signal_bus.hpp"
 #include "control.hpp"
 #include "microcode.hpp"
-#include "../components/register8.hpp"
-#include "../components/ram.hpp"
+#include "../components/bus_register.hpp"
+#include "../components/prog_counter.hpp"
+#include "../components/bus_alu.hpp"
+#include "../components/bus_ram.hpp"
 #include <array>
 #include <cstdint>
 
-// Machine er nettlisten – den kobler alle komponenter sammen
-// og styrer hvem som får snakke på bussen når.
+// Machine er nettlisten – den kobler alle komponenter
+// og driver dem med klokkesignalet. Ingen logikk her,
+// bare ledninger.
 //
-// Komponentene:
-//   - Clock        – driver alt
-//   - RAM          – 16 x 8-bit minne
-//   - Register A   – akkumulator
-//   - Register B   – operand til ALU
-//   - PC           – program counter (4-bit)
-//   - IR           – instruction register (8-bit)
-//   - OUT          – output register
+// Topology (som Ben Eaters breadboard):
+//
+//   Clock → rising edge  → alle utganger driver bussen
+//         → falling edge → alle innganger latcher + step++
+//
+//   Komponenter:
+//     regPC   : ProgCounter  (CO=ut, CE=inkrement, J=hopp)
+//     regMAR  : BusRegister  (MI=inn)
+//     regIR   : BusRegister  (IO=ut operand, II=inn)
+//     regA    : BusRegister  (AO=ut, AI=inn)
+//     regB    : BusRegister  (BI=inn)
+//     regOUT  : BusRegister  (OI=inn)
+//     alu     : BusALU       (EO=ut, SU=subtract, FI=flagg inn)
+//     ram     : BusRAM       (RO=ut, RI=inn) – adressert av regMAR
 
 class Machine {
 public:
@@ -28,49 +37,45 @@ public:
     void reset();
     void tick();
 
-    bool isHalted() const { return halted; }
+    bool isHalted() const { return halted_; }
 
-    // Tilgang for WebSocket/JSON
-    const Clock&     clock()   const { return clk; }
-    const SignalBus& signals() const { return bus; }
-    uint8_t          regA()    const { return a; }
-    uint8_t          regB()    const { return b; }
-    uint8_t          regMAR()  const { return mar; }
-    uint8_t          regPC()   const { return pc; }
-    uint8_t          regIR()   const { return ir; }
-    uint8_t          regOUT()  const { return out; }
-    uint8_t          ramAt(uint8_t addr) const { return ram[addr]; }
+    // ── Tilgang for JSON ──────────────────────────────────
+    const Clock&     clock()   const { return clk_; }
+    const SignalBus& signals() const { return bus_; }
 
-    ControlWord activeControl() const { return controlWord; }
-    bool        flagC()         const { return flagCarry; }
-    bool        flagZ()         const { return flagZero; }
-    uint8_t     regStep()       const { return step; }
+    uint8_t regA()   const { return regA_.value(); }
+    uint8_t regB()   const { return regB_.value(); }
+    uint8_t regMAR() const { return regMAR_.value(); }
+    uint8_t regPC()  const { return regPC_.value(); }
+    uint8_t regIR()  const { return regIR_.value(); }
+    uint8_t regOUT() const { return regOUT_.value(); }
+    uint8_t regStep()const { return step_; }
+
+    uint8_t     ramAt(uint8_t addr) const { return ram_.at(addr); }
+    ControlWord activeControl()     const { return bus_.ctrl(); }
+    bool        flagC()             const { return alu_.flagCarry(); }
+    bool        flagZ()             const { return alu_.flagZero(); }
 
     void loadProgram(const std::array<uint8_t, 16>& program);
 
 private:
-    Clock     clk;
-    SignalBus bus;
+    Clock     clk_;
+    SignalBus bus_;
 
-    // Registere
-    uint8_t a   = 0;
-    uint8_t b   = 0;
-    uint8_t mar = 0;
-    uint8_t pc  = 0;
-    uint8_t ir  = 0;
-    uint8_t out = 0;
+    // ── Komponenter i deklarasjonsrekkefølge ─────────────
+    // (rekkefølge betyr noe: bus_ må eksistere først)
+    BusRegister  regMAR_  { bus_, NONE, MI         };
+    BusRegister  regA_    { bus_, AO,   AI         };
+    BusRegister  regB_    { bus_, NONE, BI         };
+    BusRegister  regIR_   { bus_, IO,   II,  0x0F  };  // IO sender bare nibble
+    BusRegister  regOUT_  { bus_, NONE, OI         };
+    ProgCounter  regPC_   { bus_                };
+    BusRAM       ram_     { bus_, regMAR_        };
+    BusALU       alu_     { bus_, regA_, regB_   };
 
-    // RAM
-    std::array<uint8_t, 16> ram = {};
+    uint8_t step_   = 0;
+    bool    halted_ = false;
 
-    bool halted = false;
-
-    uint8_t     step        = 0;
-    ControlWord controlWord = NONE;
-    bool        flagCarry   = false;
-    bool        flagZero    = false;
-
-    void handleEdge(Edge edge);
-    void fetchAndExecute();
-    void executeStep();
+    void risingEdge();
+    void fallingEdge();
 };
