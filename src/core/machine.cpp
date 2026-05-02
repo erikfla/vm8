@@ -10,6 +10,7 @@ void Machine::reset() {
     step_.clear();
     instrCount_ = 0;
     halted_ = false;
+    dbg_.reset();
     clk_.reset();
     bus_.reset();
 
@@ -54,6 +55,9 @@ void Machine::risingEdge() {
               << " PC=" << std::dec << (int)regPC_.value()
               << " A="  << (int)regA_.value()
               << "]\n" << std::flush;
+
+    // Debugger tar snapshot FØR komponentene kjører
+    dbg_.onRisingEdge();
 
     // Alle utganger er aktive på rising edge:
     regPC_.onRisingEdge();   // CO  – PC → bus

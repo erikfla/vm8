@@ -32,6 +32,8 @@ std::string toJSON() {
       << "\"hz\":"       << hz << ","
       << "\"step\":"      << (int)machine.regStep()    << ","
       << "\"instr\":"     << (int)machine.instrCount() << ","
+      << "\"dbg_frozen\":" << (machine.dbgFrozen() ? "true" : "false") << ","
+      << "\"dbg_depth\":"  << (int)machine.dbgCount()  << ","
       << "\"registers\":{"
         << "\"PC\":"  << (int)machine.regPC()  << ","
         << "\"MAR\":" << (int)machine.regMAR() << ","
@@ -70,10 +72,14 @@ std::string toJSON() {
 
 // ── Kommandoer fra frontend ───────────────────────────────
 void handleCommand(const std::string& msg) {
-    if (msg == "step")  { doStep = true; return; }
-    if (msg == "run")   { mode = Mode::RUN;   return; }
-    if (msg == "pause") { mode = Mode::PAUSE; return; }
-    if (msg == "reset") { machine.reset();    return; }
+    if (msg == "step")       { doStep = true; return; }
+    if (msg == "run")        { mode = Mode::RUN;   machine.dbgResume(); return; }
+    if (msg == "pause")      { mode = Mode::PAUSE; return; }
+    if (msg == "reset")      { machine.reset();    return; }
+    if (msg == "dbg_back")   { mode = Mode::PAUSE; machine.dbgStepBack();    return; }
+    if (msg == "dbg_fwd")    { mode = Mode::PAUSE; machine.dbgStepForward(); return; }
+    if (msg == "dbg_chk")    { machine.dbgSetCheckpoint("A"); return; }
+    if (msg == "dbg_jump")   { mode = Mode::PAUSE; machine.dbgJumpToCheckpoint(); return; }
 
     auto pos = msg.find("hz=");
     if (pos != std::string::npos) {

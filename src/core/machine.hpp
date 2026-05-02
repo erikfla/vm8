@@ -9,6 +9,7 @@
 #include "../components/bus_alu.hpp"
 #include "../components/bus_ram.hpp"
 #include "../components/step_counter.hpp"
+#include "../components/debugger.hpp"
 #include <array>
 #include <cstdint>
 
@@ -53,6 +54,15 @@ public:
     uint8_t regStep()   const { return step_.value(); }
     uint32_t instrCount() const { return instrCount_; }
 
+    // ── Debugger ──────────────────────────────────────────
+    bool dbgStepBack()        { return dbg_.stepBack(); }
+    bool dbgStepForward()     { return dbg_.stepForward(); }
+    void dbgSetCheckpoint(const std::string& name) { dbg_.setCheckpoint(name); }
+    bool dbgJumpToCheckpoint(){ return dbg_.jumpToCheckpoint(); }
+    void dbgResume()          { dbg_.resume(); }
+    bool dbgFrozen()    const { return dbg_.frozen(); }
+    size_t dbgCount()   const { return dbg_.count(); }
+
     uint8_t     ramAt(uint8_t addr) const { return ram_.at(addr); }
     ControlWord activeControl()     const { return bus_.ctrl(); }
     bool        flagC()             const { return alu_.flagCarry(); }
@@ -76,6 +86,8 @@ private:
     BusALU       alu_     { bus_, regA_, regB_   };
     StepCounter  step_;
     uint32_t     instrCount_ = 0;
+    Debugger     dbg_ { bus_, regA_, regB_, regMAR_, regIR_, regOUT_,
+                        regPC_, step_, halted_ };
 
     bool    halted_ = false;
 

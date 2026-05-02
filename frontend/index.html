@@ -311,13 +311,25 @@
     <div class="memory-grid" id="memory-grid"></div>
   </div>
 
-  <!-- ── Glonale kontroll ── -->
+  <!-- ── Debugger ── -->
+  <div class="section">
+    <div class="section-label">Debugger · Ring Buffer</div>
+    <div class="controls">
+      <button class="btn" id="btn-back"    onclick="sendCmd('dbg_back')">◀ BACK</button>
+      <button class="btn" id="btn-fwd"     onclick="sendCmd('dbg_fwd')">FWD ▶</button>
+      <div class="btn-sep"></div>
+      <button class="btn" id="btn-chk"     onclick="sendCmd('dbg_chk')">⚑ CHECKPOINT</button>
+      <button class="btn" id="btn-jump"    onclick="sendCmd('dbg_jump')">↩ JUMP</button>
+      <div class="btn-sep"></div>
+      <span style="font-size:10px; color:#aaa;" id="dbg-status">LIVE · 0 snapshots</span>
+    </div>
+  </div>
+
+  <!-- ── Global kontroll ── -->
   <div class="section">
     <div class="section-label">Control</div>
     <div class="controls">
       <button class="btn" onclick="sendCmd('reset'); resetScope()">Reset</button>
-      <button class="btn" onclick="sendCmd('power_on')">Power On</button>
-      <button class="btn" onclick="sendCmd('power_off')">Power Off</button>
     </div>
   </div>
 
@@ -558,6 +570,18 @@ function applyState(state) {
   if (state.mode) {
     currentMode = state.mode;
     setMode(state.mode);
+  }
+
+  // Debugger status
+  if (state.dbg_frozen !== undefined) {
+    const frozen = state.dbg_frozen;
+    const depth  = state.dbg_depth || 0;
+    document.getElementById('dbg-status').textContent =
+      (frozen ? '❚❚ FROZEN' : 'LIVE') + ' · ' + depth + ' snapshots';
+    document.getElementById('btn-back').classList.toggle('active', frozen);
+    document.getElementById('btn-fwd').classList.toggle('active', frozen);
+    // Panel-farge når frossen
+    document.querySelector('.panel').style.borderColor = frozen ? '#cc8800' : '#aaa';
   }
 
   document.getElementById('tick-counter').textContent = 'TICK ' + tickCount;
