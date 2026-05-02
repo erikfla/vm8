@@ -18,6 +18,12 @@ void Machine::tick() {
     Edge edge = clk.tick();
     bus.set("CLK", clk.isHigh());
     handleEdge(edge);
+
+    // Hvis HLT skjedde på rising edge, fullfør perioden med falling edge
+    if (halted && clk.isHigh()) {
+        clk.tick();
+        bus.set("CLK", false);
+    }
 }
 
 void Machine::handleEdge(Edge edge) {

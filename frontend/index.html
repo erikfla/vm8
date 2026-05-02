@@ -182,7 +182,7 @@
     <div class="section-label">Clock</div>
     <div class="clock-row">
       <div class="led-labeled">
-        <div class="led yellow" id="led-clk"></div>
+        <div class="led blue" id="led-clk"></div>
         <div class="led-label">CLK</div>
       </div>
       <div class="led-labeled">
@@ -192,6 +192,19 @@
       <div class="scope-wrap">
         <canvas id="scope" width="500" height="50"></canvas>
       </div>
+    </div>
+  </div>
+
+  <!-- ── Klokke-kontroll ── -->
+  <div class="section">
+    <div class="section-label">Clock Control</div>
+    <div class="controls">
+      <button class="btn" id="btn-runpause" onclick="toggleRun()">▶ RUN</button>
+      <button class="btn" id="btn-step" onclick="sendCmd('step')">STEP</button>
+      <div class="btn-sep"></div>
+      <input type="range" id="hz-slider" min="1" max="100" value="1"
+             oninput="sendHz(this.value)">
+      <span id="hz-label" style="font-size:10px; color:#888; min-width:50px;">1 Hz</span>
     </div>
   </div>
 
@@ -283,18 +296,13 @@
     <div class="memory-grid" id="memory-grid"></div>
   </div>
 
-  <!-- ── Kontroll ── -->
+  <!-- ── Glonale kontroll ── -->
   <div class="section">
     <div class="section-label">Control</div>
     <div class="controls">
+      <button class="btn" onclick="sendCmd('reset')">Reset</button>
       <button class="btn" onclick="sendCmd('power_on')">Power On</button>
       <button class="btn" onclick="sendCmd('power_off')">Power Off</button>
-      <div class="btn-sep"></div>
-      <button class="btn active" id="btn-manual" onclick="setMode('manual')">Manual</button>
-      <button class="btn"        id="btn-auto"   onclick="setMode('auto')">Auto</button>
-      <div class="btn-sep"></div>
-      <button class="btn" id="btn-step"  onclick="sendCmd('step')">Step</button>
-      <button class="btn" onclick="sendCmd('reset')">Reset</button>
     </div>
   </div>
 
@@ -335,8 +343,8 @@ function setRegLeds(containerId, value, bits) {
 buildBitLeds('reg-BUS',   8, '');
 buildBitLeds('reg-PC',    4, 'green');
 buildBitLeds('reg-MAR',   4, 'yellow');
-buildBitLeds('reg-IR-hi', 4, '');       // opcode
-buildBitLeds('reg-IR-lo', 4, 'blue');   // operand
+buildBitLeds('reg-IR-hi', 4, 'blue');       // opcode
+buildBitLeds('reg-IR-lo', 4, 'yellow');   // operand
 buildBitLeds('reg-A',     8, '');
 buildBitLeds('reg-B',     8, '');
 buildBitLeds('reg-ALU',   8, '');
@@ -386,10 +394,23 @@ const ctx    = canvas.getContext('2d');
 const W = 500, H = 50;
 canvas.width = W; canvas.height = H;
 const scopeHistory = new Array(W).fill(0);
+let lastClk = 0;
 
-function pushScope(high) {
-  scopeHistory.push(high ? 1 : 0);
-  if (scopeHistory.length > W) scopeHistory.shift();
+function pushScope(high, hz) {
+  const pixelsPerSample = Math.max(1, Math.floor(W / (hz * 24)));
+  const val = high ? 1 : 0;
+
+  // Bare tegn hvis klokken endret seg
+  if (val === lastClk) return;
+  lastClk = val;
+
+  // Fyll pixelsPerSample piksler med ny verdi
+  for (let i = 0; i < pixelsPerSample; i++) {
+    scopeHistory.push(val);
+    if (scopeHistory.length > W) scopeHistory.shift();
+  }
+
+  // Tegn
   ctx.clearRect(0, 0, W, H);
   ctx.strokeStyle = '#eee'; ctx.lineWidth = 1;
   for (let x = 0; x < W; x += 25) {
@@ -397,16 +418,16 @@ function pushScope(high) {
   }
   ctx.beginPath(); ctx.moveTo(0, H/2); ctx.lineTo(W, H/2); ctx.stroke();
   ctx.beginPath(); ctx.strokeStyle = '#333'; ctx.lineWidth = 1.5;
-  const lo = H - 8, hi = 8;
+  const lo = H - 8, hi2 = 8;
   for (let i = 0; i < scopeHistory.length; i++) {
-    const y = scopeHistory[i] ? hi : lo;
+    const y = scopeHistory[i] ? hi2 : lo;
     if (i === 0) { ctx.moveTo(i, y); continue; }
-    const py = scopeHistory[i-1] ? hi : lo;
+    const py = scopeHistory[i-1] ? hi2 : lo;
     if (py !== y) { ctx.lineTo(i, py); ctx.lineTo(i, y); } else ctx.lineTo(i, y);
   }
   ctx.stroke();
 }
-pushScope(0);
+pushScope(0, 1);
 
 // ── Edge ─────────────────────────────────────────────────
 const edgeSym = document.getElementById('edge-symbol');
@@ -430,7 +451,7 @@ function applyState(state) {
   // Klokke
   const clkHigh = state.clock === 'HIGH';
   document.getElementById('led-clk').classList.toggle('on', clkHigh);
-  pushScope(clkHigh);
+  pushScope(clkHigh, state.hz || 1);
   if (state.edge) showEdge(state.edge);
 
   // Bus
@@ -492,8 +513,7 @@ function applyState(state) {
   // Mode
   if (state.mode) {
     currentMode = state.mode;
-    document.getElementById('btn-manual').classList.toggle('active', state.mode === 'manual');
-    document.getElementById('btn-auto').classList.toggle('active',   state.mode === 'auto');
+    setMode(state.mode);
   }
 
   document.getElementById('tick-counter').textContent = 'TICK ' + tickCount;
@@ -507,25 +527,59 @@ function sendCmd(cmd) {
     fetch('/cmd', { method: 'POST', body: cmd });
 }
 
-function setMode(mode) {
-    currentMode = mode;
-    document.getElementById('btn-manual').classList.toggle('active', mode === 'manual');
-    document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
-    sendCmd(mode);
+let isRunning = false;
+
+function toggleRun() {
+    isRunning = !isRunning;
+    const btn = document.getElementById('btn-runpause');
+    if (isRunning) {
+        btn.textContent = '⏸ PAUSE';
+        btn.classList.add('active');
+        sendCmd('run');
+    } else {
+        btn.textContent = '▶ RUN';
+        btn.classList.remove('active');
+        sendCmd('pause');
+    }
 }
 
-setInterval(() => {
+function setMode(mode) {
+    isRunning = (mode === 'run');
+    const btn = document.getElementById('btn-runpause');
+    if (btn) {
+        btn.textContent = isRunning ? '⏸ PAUSE' : '▶ RUN';
+        btn.classList.toggle('active', isRunning);
+    }
+}
+
+function sendHz(val) {
+    document.getElementById('hz-label').textContent = val + ' Hz';
+    sendCmd('hz=' + val);
+}
+
+let pollInterval = 500;
+
+function updatePollInterval(hz) {
+    pollInterval = Math.max(16, 1000 / (hz * 2));
+}
+
+function poll() {
     fetch('/state')
         .then(r => r.json())
-        .then(state => applyState(state))
+        .then(state => {
+            updatePollInterval(state.hz);
+            document.getElementById('conn-dot').className = 'conn-dot connected';
+            document.getElementById('conn-label').textContent = 'Tilkoblet VM8';
+            applyState(state);
+        })
         .catch(() => {
             document.getElementById('conn-dot').className = 'conn-dot error';
             document.getElementById('conn-label').textContent = 'Ikke tilkoblet';
-        });
-}, 200);
+        })
+        .finally(() => setTimeout(poll, pollInterval));
+}
+poll();
 
-document.getElementById('conn-dot').className = 'conn-dot connected';
-document.getElementById('conn-label').textContent = 'Tilkoblet VM8';
 </script>
 </body>
 </html>

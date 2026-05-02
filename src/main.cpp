@@ -14,10 +14,11 @@ using namespace httplib;
 // ── Tilstand ─────────────────────────────────────────────
 Machine machine;
 
-enum class Mode { MANUAL, AUTO };
-Mode mode   = Mode::MANUAL;
+enum class Mode { RUN, PAUSE };
+Mode mode   = Mode::PAUSE;
 int  hz     = 1;
-bool doStep = false;
+std::atomic<bool> doStep { false };
+bool verbose = false;
 
 // ── JSON ─────────────────────────────────────────────────
 std::string toJSON() {
@@ -25,12 +26,15 @@ std::string toJSON() {
     o << "{"
       << "\"clock\":\""  << (machine.clock().isHigh() ? "HIGH" : "LOW") << "\","
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
-      << "\"mode\":\""   << (mode == Mode::AUTO ? "auto" : "manual") << "\","
+      << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "pause") << "\","
       << "\"hz\":"       << hz << ","
       << "\"registers\":{"
         << "\"PC\":"  << (int)machine.regPC()  << ","
+        << "\"MAR\":" << (int)machine.regMAR() << ","
         << "\"IR\":"  << (int)machine.regIR()  << ","
         << "\"A\":"   << (int)machine.regA()   << ","
+        << "\"B\":"   << (int)machine.regB()   << ","
+        << "\"ALU\":" << (int)machine.regA()   << ","
         << "\"OUT\":" << (int)machine.regOUT()
       << "},"
       << "\"ram\":[";
@@ -44,10 +48,10 @@ std::string toJSON() {
 
 // ── Kommandoer fra frontend ───────────────────────────────
 void handleCommand(const std::string& msg) {
-    if (msg.find("step")   != std::string::npos) doStep = true;
-    if (msg.find("manual") != std::string::npos) mode = Mode::MANUAL;
-    if (msg.find("auto")   != std::string::npos) mode = Mode::AUTO;
-    if (msg.find("reset")  != std::string::npos) machine.reset();
+    if (msg == "step")  { doStep = true; return; }
+    if (msg == "run")   { mode = Mode::RUN;   return; }
+    if (msg == "pause") { mode = Mode::PAUSE; return; }
+    if (msg == "reset") { machine.reset();    return; }
 
     auto pos = msg.find("hz=");
     if (pos != std::string::npos) {
@@ -57,7 +61,8 @@ void handleCommand(const std::string& msg) {
 }
 
 // ── Main ─────────────────────────────────────────────────
-int main() {
+int main(int argc, char* argv[]) {
+    if (argc > 1 && std::string(argv[1]) == "--verbose") verbose = true;
     // Last inn testprogram
     std::array<uint8_t, 16> program = {
         0x1E,  // LDA 14
@@ -76,7 +81,9 @@ int main() {
 
     // Tilstand
     svr.Get("/state", [](const Request&, Response& res) {
-        res.set_content(toJSON(), "application/json");
+        std::string json = toJSON();
+        if (verbose) std::cout << json << "\n";
+        res.set_content(json, "application/json");
         res.set_header("Access-Control-Allow-Origin", "*");
     });
 
@@ -109,14 +116,17 @@ int main() {
 
         bool tick = false;
 
-        if (mode == Mode::AUTO && !machine.isHalted()) {
-            if (ms >= 1000 / hz) {
-                tick     = true;
+        if (mode == Mode::RUN && !machine.isHalted()) {
+            if (ms >= 1000 / std::max(1, hz)) {
+                machine.tick();
                 lastTick = now;
             }
-        } else if (mode == Mode::MANUAL && doStep) {
-            tick   = true;
-            doStep = false;
+        } else if (mode == Mode::PAUSE && doStep.exchange(false)) {
+            int pulseMs = std::max(100, 1000 / (hz * 2));
+            machine.tick();  // HIGH
+            std::this_thread::sleep_for(std::chrono::milliseconds(pulseMs));
+            machine.tick();  // LOW
+            std::this_thread::sleep_for(std::chrono::milliseconds(pulseMs));
         }
 
         if (tick) machine.tick();

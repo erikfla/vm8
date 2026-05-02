@@ -33,6 +33,7 @@ public:
     const SignalBus& signals() const { return bus; }
     uint8_t          regA()    const { return a; }
     uint8_t          regB()    const { return b; }
+    uint8_t          regMAR()  const { return mar; }
     uint8_t          regPC()   const { return pc; }
     uint8_t          regIR()   const { return ir; }
     uint8_t          regOUT()  const { return out; }
@@ -47,6 +48,7 @@ private:
     // Registere
     uint8_t a   = 0;
     uint8_t b   = 0;
+    uint8_t mar = 0;
     uint8_t pc  = 0;
     uint8_t ir  = 0;
     uint8_t out = 0;
