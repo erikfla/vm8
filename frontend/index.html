@@ -534,15 +534,16 @@ function applyState(state) {
     document.getElementById('step-label').textContent = 'T' + state.step;
   }
 
-  // Instruksjonsteller + opcode-navn
+  // Instruksjonsteller + opcode-navn / FETCH
   const OPCODES = {
     0x0:'NOP', 0x1:'LDA', 0x2:'ADD', 0x3:'SUB',
     0x4:'OUT', 0xF:'HLT'
   };
   if (state.instr !== undefined) {
-    const opcode = (regs['IR'] >> 4) & 0xF;
-    const name   = OPCODES[opcode] || '???';
-    document.getElementById('instr-count').textContent = state.instr + ' · ' + name;
+    const opcode  = (regs['IR'] >> 4) & 0xF;
+    const name    = OPCODES[opcode] || '???';
+    const phase   = (state.step <= 1) ? 'FETCH' : name;
+    document.getElementById('instr-count').textContent = state.instr + ' · ' + phase;
   }
 
   // Minne
