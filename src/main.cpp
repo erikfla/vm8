@@ -30,6 +30,7 @@ std::string toJSON() {
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
       << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "pause") << "\","
       << "\"hz\":"       << hz << ","
+      << "\"step\":"      << (int)machine.regStep() << ","
       << "\"registers\":{"
         << "\"PC\":"  << (int)machine.regPC()  << ","
         << "\"MAR\":" << (int)machine.regMAR() << ","
