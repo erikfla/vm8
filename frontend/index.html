@@ -504,78 +504,28 @@ let ws = null;
 let currentMode = 'manual';
 
 function sendCmd(cmd) {
-  if (ws && ws.readyState === WebSocket.OPEN) ws.send(JSON.stringify({ cmd }));
+    fetch('/cmd', { method: 'POST', body: cmd });
 }
 
 function setMode(mode) {
-  currentMode = mode;
-  document.getElementById('btn-manual').classList.toggle('active', mode === 'manual');
-  document.getElementById('btn-auto').classList.toggle('active',   mode === 'auto');
-  sendCmd(mode);
+    currentMode = mode;
+    document.getElementById('btn-manual').classList.toggle('active', mode === 'manual');
+    document.getElementById('btn-auto').classList.toggle('active', mode === 'auto');
+    sendCmd(mode);
 }
 
-// ── Demo ─────────────────────────────────────────────────
-// Simulerer et enkelt program: LDA 14, OUT, LDA 15, OUT, HLT
-let demoRunning = false, demoClk = false, demoTick = 0;
-const demoRam = [
-  0x1E, 0x4F, 0x1F, 0x4F, 0xF0,
-  0,0,0,0,0,0,0,0,0,
-  42, 99
-];
-const demoSteps = [
-  { PC:0, MAR:0, IR:0x00, A:0,  bus:0,    control:{CO:1,MI:1} },
-  { PC:1, MAR:0, IR:0x1E, A:0,  bus:0x1E, control:{RO:1,II:1,CE:1} },
-  { PC:1, MAR:14,IR:0x1E, A:0,  bus:0x0E, control:{IO:1,MI:1} },
-  { PC:1, MAR:14,IR:0x1E, A:42, bus:42,   control:{RO:1,AI:1} },
-  { PC:1, MAR:1, IR:0x4F, A:42, bus:1,    control:{CO:1,MI:1} },
-  { PC:2, MAR:1, IR:0x4F, A:42, bus:0x4F, control:{RO:1,II:1,CE:1} },
-  { PC:2, MAR:1, IR:0x4F, A:42, bus:42,   control:{AO:1,OI:1} },
-];
-let demoStep = 0;
-let demoInterval = null;
+setInterval(() => {
+    fetch('/state')
+        .then(r => r.json())
+        .then(state => applyState(state))
+        .catch(() => {
+            document.getElementById('conn-dot').className = 'conn-dot error';
+            document.getElementById('conn-label').textContent = 'Ikke tilkoblet';
+        });
+}, 200);
 
-function runDemo() {
-  if (demoRunning) return;
-  demoRunning = true;
-  document.getElementById('conn-label').textContent = 'Demo-modus (ingen VM8 tilkoblet)';
-  demoInterval = setInterval(() => {
-    if (currentMode !== 'auto') return;
-    demoClk = !demoClk;
-    const s = demoSteps[demoStep % demoSteps.length];
-    applyState({
-      clock: demoClk ? 'HIGH' : 'LOW',
-      edge:  demoClk ? 'RISING' : 'FALLING',
-      halted: false,
-      bus: s.bus,
-      registers: { PC: s.PC, MAR: s.MAR, IR: s.IR, A: s.A, B: 0, ALU: s.A, OUT: s.A },
-      flags: { CF: false, ZF: s.A === 0 },
-      control: s.control,
-      ram: demoRam,
-      mode: currentMode,
-    });
-    if (demoClk) demoStep++;
-  }, 400);
-}
-
-function connect() {
-  try { ws = new WebSocket('ws://localhost:8765'); } catch(e) { runDemo(); return; }
-  ws.onopen = () => {
-    clearInterval(demoInterval); demoRunning = false;
-    document.getElementById('conn-dot').className = 'conn-dot connected';
-    document.getElementById('conn-label').textContent = 'Tilkoblet VM8';
-  };
-  ws.onmessage = (ev) => { try { applyState(JSON.parse(ev.data)); } catch(e) {} };
-  ws.onclose = () => {
-    document.getElementById('conn-dot').className = 'conn-dot error';
-    document.getElementById('conn-label').textContent = 'Mistet forbindelse – prøver igjen om 3s...';
-    setTimeout(connect, 3000);
-  };
-}
-
-connect();
-setTimeout(() => {
-  if (!demoRunning && !document.getElementById('conn-dot').classList.contains('connected')) runDemo();
-}, 1000);
+document.getElementById('conn-dot').className = 'conn-dot connected';
+document.getElementById('conn-label').textContent = 'Tilkoblet VM8';
 </script>
 </body>
 </html>
