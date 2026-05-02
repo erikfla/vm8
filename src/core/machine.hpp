@@ -50,7 +50,8 @@ public:
     uint8_t regPC()  const { return regPC_.value(); }
     uint8_t regIR()  const { return regIR_.value(); }
     uint8_t regOUT() const { return regOUT_.value(); }
-    uint8_t regStep()const { return step_.value(); }
+    uint8_t regStep()   const { return step_.value(); }
+    uint32_t instrCount() const { return instrCount_; }
 
     uint8_t     ramAt(uint8_t addr) const { return ram_.at(addr); }
     ControlWord activeControl()     const { return bus_.ctrl(); }
@@ -74,6 +75,7 @@ private:
     BusRAM       ram_     { bus_, regMAR_        };
     BusALU       alu_     { bus_, regA_, regB_   };
     StepCounter  step_;
+    uint32_t     instrCount_ = 0;
 
     bool    halted_ = false;
 

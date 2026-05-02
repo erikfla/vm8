@@ -206,6 +206,7 @@
       <div class="led-labeled"><div class="led blue" id="led-step-4"></div><div class="led-label">T4</div></div>
       <div class="led-labeled"><div class="led blue" id="led-step-5"></div><div class="led-label">T5</div></div>
       <span style="font-size:11px; color:#aaa; margin-left:8px; padding-bottom:2px;" id="step-label">T0</span>
+      <span style="font-size:11px; color:#aaa; margin-left:24px; padding-bottom:2px;">INSTR&nbsp;<span id="instr-count" style="color:#555;">0</span></span>
     </div>
   </div>
 
@@ -531,6 +532,11 @@ function applyState(state) {
       if (el) el.classList.toggle('on', i === state.step);
     }
     document.getElementById('step-label').textContent = 'T' + state.step;
+  }
+
+  // Instruksjonsteller
+  if (state.instr !== undefined) {
+    document.getElementById('instr-count').textContent = state.instr;
   }
 
   // Minne

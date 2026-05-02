@@ -8,6 +8,7 @@ Machine::Machine() {
 
 void Machine::reset() {
     step_.clear();
+    instrCount_ = 0;
     halted_ = false;
     clk_.reset();
     bus_.reset();
@@ -89,7 +90,9 @@ void Machine::fallingEdge() {
     // ── Step-teller (invertert klokke = falling edge) ─────
     // StepCounter teller alltid – akkurat som 74LS163.
     // HLT stopper klokken, ikke telleren.
+    bool wasT5 = (step_.value() == MAX_STEPS - 1);
     step_.onFallingEdge();
+    if (wasT5) instrCount_++;  // ny instruksjon starter
 }
 
 void Machine::loadProgram(const std::array<uint8_t, 16>& program) {
