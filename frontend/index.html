@@ -324,17 +324,20 @@
       width:100%; height:160px; box-sizing:border-box;
       background:#1a1a1a; color:#e0e0e0; border:1px solid #444;
       font-family:monospace; font-size:12px; padding:8px;
-      resize:vertical; border-radius:3px;">; Test: JC og JZ
+      resize:vertical; border-radius:3px;">; Demo: carry flag (JC) and zero flag (JZ)
 LDA 14     ; A = 200
-ADD 15     ; A = 44, CF=1
-OUT
-JC 7       ; hopp hvis carry
-HLT        ; ikke nådd
+ADD 15     ; A = 44, CF=1 (300 overflows 8-bit)
+OUT        ; output 44
+JC 7       ; carry set → jump to addr 7
+HLT        ; not reached
 NOP
+LDA 14     ; A = 200
+SUB 14     ; A = 0, ZF=1
+OUT        ; output 0
+JZ 12      ; zero set → jump to addr 12
+HLT        ; not reached
 NOP
-OUT        ; ikke nådd
-HLT        ; nådd
-NOP NOP NOP NOP NOP
+HLT        ; reached
 14: 200
 15: 100</textarea>
     <div class="controls" style="margin-top:6px;">
@@ -346,7 +349,7 @@ NOP NOP NOP NOP NOP
       background:#111; color:#8f8; border:1px solid #333;
       font-family:monospace; font-size:12px; padding:6px;
       resize:none; border-radius:3px;"
-      placeholder="maskinkode vises her etter assembling..."></textarea>
+      placeholder="machine code appears here after assembling..."></textarea>
   </div>
 
   <!-- ── Minne ── -->
@@ -769,7 +772,7 @@ poll();
         if (addr > 15) { err = `Adresse ${addr} > 15`; return; }
         ram[pc++] = (op << 4) | (addr & 0xF);
       }
-      if (pc > 16) { err = 'Program er for stort (maks 16 bytes)'; }
+      if (pc > 16) { err = 'Program too large (max 16 bytes)'; }
     });
 
     if (err) { status.textContent = '✗ ' + err; status.style.color='#f88'; return; }
@@ -782,10 +785,10 @@ poll();
     fetch('/load', { method:'POST', body: ram.join(',') })
       .then(r => r.text())
       .then(() => {
-        status.textContent = '✓ Lastet ' + pc + ' bytes';
+        status.textContent = '✓ Loaded ' + pc + ' bytes';
         status.style.color = '#8f8';
       })
-      .catch(() => { status.textContent = '✗ Tilkoblingsfeil'; status.style.color='#f88'; });
+      .catch(() => { status.textContent = '✗ Connection error'; status.style.color='#f88'; });
   }
 
 </script>
