@@ -91,7 +91,7 @@ void handleCommand(const std::string& msg) {
     }
     if (msg == "run")        { mode = Mode::RUN;   machine.dbgResume(); return; }
     if (msg == "pause")      { mode = Mode::PAUSE; return; }
-    if (msg == "reset")      { machine.reset();    return; }
+    if (msg == "reset")      { machine.reset(); wasHalted = false; return; }
     if (msg == "dbg_back")   { mode = Mode::PAUSE; machine.dbgStepBack();    return; }
     if (msg == "dbg_fwd")    { mode = Mode::PAUSE; if (!machine.dbgStepForward()) machine.dbgResume(); return; }
     if (msg == "dbg_chk")    { machine.dbgSetCheckpoint("A"); return; }
@@ -197,6 +197,13 @@ int main(int argc, char* argv[]) {
         }
 
         if (tick) machine.tick();
+
+        // Detekter HLT-overgang
+        static bool wasHalted = false;
+        bool isHalted = machine.isHalted();
+        if (isHalted && !wasHalted)
+            std::cout << "[Machine] Halted\n";
+        wasHalted = isHalted;
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }

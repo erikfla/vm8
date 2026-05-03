@@ -1,6 +1,7 @@
 // src/core/machine.cpp
 #include "machine.hpp"
 #include <iostream>
+extern bool verbose;
 
 Machine::Machine() {
     // ── Nettlisten: kobler porter til klokkelinjer ────────
@@ -47,7 +48,7 @@ void Machine::reset() {
     outDisplay_.last = 0;  // synk med regOUT_ slik at reset ikke trigger [OUT] 0
 
     rom_.update();
-    std::cout << "[Machine] Reset\n";
+    if (verbose) std::cout << "[Machine] Reset\n";
 }
 
 void Machine::loadProgram(const std::array<uint8_t, 16>& program) {
