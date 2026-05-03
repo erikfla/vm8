@@ -719,54 +719,68 @@ poll();
     const ram    = new Array(16).fill(0);
     const labels = {};
 
-    // Første pass: samle label-adresser og data-linjer
-    // Linje-format:  [addr:] MNEMONIC [operand]   ; kommentar
-    //                addr: verdi                   (data)
-    const lines = src.split('\n').map(l => l.replace(/;.*/,'').trim()).filter(Boolean);
+    // Line types:
+    //   14: 200     → explicit address with data value
+    //   cnt: 0      → named label with data value (placed sequentially)
+    //   loop:       → label only (points to next instruction)
+    //   loop: OUT   → label + instruction on same line
+    //   LDA 14      → instruction
+    const lines = src.split('\n').map(l => l.replace(/;.*/,'')).filter(l => l.trim());
 
-    // Finn eksplisitte adresser (data):  14: 200
-    lines.forEach(l => {
-      const m = l.match(/^(\d+):\s*(\d+)$/);
-      if (m) ram[parseInt(m[1])] = parseInt(m[2]) & 0xFF;
-    });
-
-    // Finn label-definisjoner:  loop:
+    // First pass: collect labels and measure PC
     let pc = 0;
     lines.forEach(l => {
-      if (/^\d+:\s*\d+$/.test(l)) return;  // data-linje
-      const lm = l.match(/^(\w+):(.*)$/);
+      l = l.trim();
+      if (/^\d+:\s*\d+$/.test(l)) return;  // explicit addr: val — no pc
+
+      const lm = l.match(/^([A-Za-z_]\w*):\s*(.*)$/);
       if (lm) {
         labels[lm[1].toUpperCase()] = pc;
-        if (!lm[2].trim()) return;             // bare label, ingen instruksjon
-        l = lm[2].trim();
+        const rest = lm[2].trim();
+        if (!rest) return;                         // label only
+        if (/^\d+$/.test(rest)) { pc++; return; } // label: data value
+        l = rest;                                   // label: instruction
       }
-      const parts = l.split(/\s+/);
-      if (OPCODES[parts[0].toUpperCase()] !== undefined) pc++;
+      const mn = l.trim().split(/\s+/)[0].toUpperCase();
+      if (OPCODES[mn] !== undefined) pc++;
     });
 
-    // Andre pass: generer kode
+    // Second pass: generate code
     pc = 0;
     let err = null;
     lines.forEach(l => {
       if (err) return;
-      if (/^\d+:\s*\d+$/.test(l)) return;     // data-linje, allerede behandlet
-      const lm = l.match(/^\w+:(.*)$/);
-      if (lm) l = lm[1].trim();
+      l = l.trim();
+
+      // Explicit address data:  14: 200
+      const dm = l.match(/^(\d+):\s*(\d+)$/);
+      if (dm) { ram[parseInt(dm[1])] = parseInt(dm[2]) & 0xFF; return; }
+
+      // Label prefix
+      const lm = l.match(/^([A-Za-z_]\w*):\s*(.*)$/);
+      if (lm) {
+        const rest = lm[2].trim();
+        if (!rest) return;                         // label only
+        if (/^\d+$/.test(rest)) {                 // label: data value
+          ram[pc++] = parseInt(rest) & 0xFF; return;
+        }
+        l = rest;                                  // label: instruction
+      }
       if (!l) return;
 
       const parts = l.split(/\s+/);
       const mn    = parts[0].toUpperCase();
-      if (OPCODES[mn] === undefined) { err = `Ukjent instruksjon: ${parts[0]}`; return; }
+      if (OPCODES[mn] === undefined) { err = `Unknown instruction: ${parts[0]}`; return; }
 
       const op = OPCODES[mn];
       if (mn === 'NOP' || mn === 'OUT' || mn === 'HLT') {
         ram[pc++] = op << 4;
       } else {
-        if (parts.length < 2) { err = `${mn} mangler operand`; return; }
+        if (parts.length < 2) { err = `${mn} missing operand`; return; }
         let addr = parseInt(parts[1]);
         if (isNaN(addr)) addr = labels[parts[1].toUpperCase()];
-        if (addr === undefined) { err = `Ukjent label: ${parts[1]}`; return; }
-        if (addr > 15) { err = `Adresse ${addr} > 15`; return; }
+        if (addr === undefined) { err = `Unknown label: ${parts[1]}`; return; }
+        if (addr > 15) { err = `Address ${addr} out of range (max 15)`; return; }
         ram[pc++] = (op << 4) | (addr & 0xF);
       }
       if (pc > 16) { err = 'Program too large (max 16 bytes)'; }
@@ -774,11 +788,11 @@ poll();
 
     if (err) { status.textContent = '✗ ' + err; status.style.color='#f88'; return; }
 
-    // Send til vm8
-    // Vis maskinkode
+    // Show machine code
     document.getElementById('asm-output').value =
       ram.map(b => b.toString(16).toUpperCase().padStart(2,'0')).join(' ');
 
+    // Send to vm8
     fetch('/load', { method:'POST', body: ram.join(',') })
       .then(r => r.text())
       .then(() => {
