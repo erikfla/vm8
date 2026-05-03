@@ -286,14 +286,16 @@
   </div>
 
   <!-- ── Kontrollsignaler + Flags ── -->
-  <div class="section">
-    <div class="section-label">Control Signals</div>
-    <div style="display:flex; align-items:flex-start; gap:24px;">
-      <div class="ctrl-grid" id="ctrl-grid" style="flex:1;">
+  <div style="display:flex; gap:20px; align-items:flex-start;">
+    <div class="section" style="flex:1; min-width:0;">
+      <div class="section-label">Control Signals</div>
+      <div class="ctrl-grid" id="ctrl-grid">
         <!-- Populeres automatisk -->
       </div>
-      <div style="display:flex; flex-direction:column; gap:10px; padding-top:2px;">
-        <div style="font-size:9px; color:#888; text-transform:uppercase; letter-spacing:1px;">Flags</div>
+    </div>
+    <div class="section" style="min-width:64px; flex-shrink:0;">
+      <div class="section-label">Flags</div>
+      <div style="display:flex; flex-direction:column; gap:12px; padding-top:4px;">
         <div class="led-labeled">
           <div class="led" id="led-CF"></div>
           <div class="led-label">CF</div>
