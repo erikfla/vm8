@@ -230,6 +230,7 @@
       <span class="reg-label">BUS</span>
       <div class="bit-group" id="reg-BUS"></div>
       <span class="reg-value" id="val-BUS">–</span>
+      <span id="bus-driver" style="font-size:10px; color:#f80; margin-left:8px; min-width:48px; text-align:left;">-</span>
     </div>
   </div>
 
@@ -490,6 +491,10 @@ function applyState(state) {
   if (state.bus !== undefined) {
     setRegLeds('reg-BUS', state.bus, 8);
     document.getElementById('val-BUS').textContent = '0x' + state.bus.toString(16).toUpperCase().padStart(2,'0');
+    const ctrl = state.control || {};
+    const driver = ctrl.CO ? 'PC' : ctrl.RO ? 'RAM' : ctrl.AO ? 'A'
+                 : ctrl.EO ? 'ALU' : ctrl.IO ? 'IR' : '-';
+    document.getElementById('bus-driver').textContent = driver !== '-' ? '<- ' + driver : '-';
   }
 
   // Registere

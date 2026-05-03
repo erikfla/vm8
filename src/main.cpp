@@ -28,6 +28,7 @@ std::string toJSON() {
     std::ostringstream o;
     o << "{"
       << "\"clock\":\""  << (machine.clockHigh() ? "HIGH" : "LOW") << "\","
+      << "\"bus\":"      << (int)machine.busData() << ","
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
       << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "pause") << "\","
       << "\"hz\":"       << hz << ","

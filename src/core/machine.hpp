@@ -47,6 +47,7 @@ public:
     ControlWord activeControl()     const { return bus_.ctrl(); }
     bool        flagC()             const { return alu_.flagCarry(); }
     bool        flagZ()             const { return alu_.flagZero(); }
+    uint8_t     busData()           const { return bus_.getData(); }
 
     void setDebugMode(bool on) { debugMode_ = on; }
     bool debugMode()     const { return debugMode_; }
