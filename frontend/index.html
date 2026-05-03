@@ -505,7 +505,7 @@ function applyState(state) {
     const driverTxt  = driver ? '← ' + driver : '';
     const readersTxt = readers.length ? '→ ' + readers.join(' ') : '';
     const busLabel   = [driverTxt, readersTxt].filter(Boolean).join('  ') || '–';
-    document.getElementById('bus-driver').textContent = busLabel;
+    
   }
 
   // Registere
