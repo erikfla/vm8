@@ -23,26 +23,26 @@ constexpr uint8_t OP_HLT = 0xF;
 // Mikrokodetabell [opcode][step]
 inline constexpr std::array<std::array<ControlWord, MAX_STEPS>, 16> MICROCODE = {{
   // 0x0 NOP
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
   // 0x1 LDA
-  {{ CO|MI, RO|II|CE, IO|MI, RO|AI, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, IO|MI, RO|AI, NONE }},
   // 0x2 ADD
-  {{ CO|MI, RO|II|CE, IO|MI, RO|BI, EO|AI|FI, NONE }},
+  {{ CO|MI, RO|II|CE, IO|MI, RO|BI, EO|AI|FI }},
   // 0x3 SUB
-  {{ CO|MI, RO|II|CE, IO|MI, RO|BI, EO|AI|SU|FI, NONE }},
+  {{ CO|MI, RO|II|CE, IO|MI, RO|BI, EO|AI|SU|FI }},
   // 0x4 OUT
-  {{ CO|MI, RO|II|CE, AO|OI, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, AO|OI, NONE, NONE }},
   // 0x5–0xE: ubrukte → NOP
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
-  {{ CO|MI, RO|II|CE, NONE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, NONE, NONE, NONE }},
   // 0xF HLT
-  {{ CO|MI, RO|II|CE, HLT,  NONE, NONE, NONE }},
+  {{ CO|MI, RO|II|CE, HLT,  NONE, NONE }},
 }};
