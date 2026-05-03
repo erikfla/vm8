@@ -640,7 +640,6 @@ function toggleRun() {
     btn.classList.toggle('active', isRunning);
     sendCmd(isRunning ? 'run' : 'pause');
 }
-}
 
 function setMode(mode) {
     isRunning = (mode === 'run');
