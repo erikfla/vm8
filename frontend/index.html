@@ -234,10 +234,12 @@
     </div>
   </div>
 
-  <!-- ── Registere + Output side om side ── -->
+  <!-- ── Registere ── -->
   <div class="two-col" style="align-items:flex-start;">
-    <div class="section" style="min-width:0; flex:1;">
-      <div class="section-label">Registers</div>
+
+    <!-- Venstre: fetch-stien PC → MAR → MEM → IR -->
+    <div class="section" style="flex:1; min-width:0;">
+      <div class="section-label">Fetch path</div>
       <div style="display:flex; flex-direction:column; gap:8px;">
         <div class="led-register">
           <span class="reg-label">PC</span>
@@ -250,15 +252,32 @@
           <span class="reg-value" id="val-MAR">–</span>
         </div>
         <div class="led-register">
+          <span class="reg-label" title="RAM[MAR] — kombinatorisk">MEM</span>
+          <div class="bit-group" id="reg-MEM"></div>
+          <span class="reg-value" id="val-MEM">–</span>
+        </div>
+        <div class="led-register">
           <span class="reg-label">IR</span>
           <div class="bit-group" id="reg-IR-hi"></div>
           <div class="bit-group" id="reg-IR-lo"></div>
           <span class="reg-value" id="val-IR">–</span>
         </div>
+      </div>
+    </div>
+
+    <!-- Høyre: ALU-stien A → ALU ← B → OUT → display -->
+    <div class="section" style="flex:1; min-width:0;">
+      <div class="section-label">ALU path</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
         <div class="led-register">
           <span class="reg-label">A</span>
           <div class="bit-group" id="reg-A"></div>
           <span class="reg-value" id="val-A">–</span>
+        </div>
+        <div class="led-register">
+          <span class="reg-label" title="Kombinatorisk — alltid A+B eller A–B">A±B</span>
+          <div class="bit-group" id="reg-ALU"></div>
+          <span class="reg-value" id="val-ALU">–</span>
         </div>
         <div class="led-register">
           <span class="reg-label">B</span>
@@ -266,23 +285,14 @@
           <span class="reg-value" id="val-B">–</span>
         </div>
         <div class="led-register">
-          <span class="reg-label" title="Kombinatorisk — alltid A+B eller A–B">A±B</span>
-          <div class="bit-group" id="reg-ALU"></div>
-          <span class="reg-value" id="val-ALU">–</span>
-        </div>
-      </div>
-    </div>
-    <div class="section" style="min-width:0; flex:1;">
-      <div class="section-label">Output</div>
-      <div style="display:flex; flex-direction:column; gap:8px;">
-        <div class="led-register">
           <span class="reg-label">OUT</span>
           <div class="bit-group" id="reg-OUT"></div>
           <span class="reg-value" id="val-OUT">–</span>
         </div>
-        <div class="seven-seg" id="seven-seg">–</div>
+        <div class="seven-seg" id="seven-seg" style="margin-top:4px;">–</div>
       </div>
     </div>
+
   </div>
 
   <!-- ── Mikrosteg-teller ── -->
