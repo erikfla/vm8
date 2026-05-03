@@ -83,20 +83,15 @@ private:
     // Kombinatorisk display – som 7-segment koblet til OUT-register
     struct OutDisplay : Component {
         Machine& m;
-        uint8_t  last   = 0;
         bool     active = false;
         explicit OutDisplay(Machine& machine) : m(machine) {}
         void set(const std::string&, bool) override {}
         bool get(const std::string&) const override { return false; }
         void onRisingEdge() override {
             if (!(m.activeControl() & OI)) return;
-            // Les buss-verdien direkte (stabil fra mainClk-fasen)
-            uint8_t v = static_cast<uint8_t>(m.bus_.getData());
             active = true;
-            if (v != last) {
-                last = v;
-                std::cout << "[OUT] " << std::dec << (int)v << "\n";
-            }
+            uint8_t v = m.bus_.getData();
+            std::cout << "[OUT] " << std::dec << (int)v << "\n";
         }
     } outDisplay_ { *this };
 
