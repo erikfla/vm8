@@ -44,6 +44,7 @@ void Machine::reset() {
     regIR_.setValue(0);
     regOUT_.setValue(0);
     regPC_.setValue(0);
+    outDisplay_.last = 0;  // synk med regOUT_ slik at reset ikke trigger [OUT] 0
 
     rom_.update();
     std::cout << "[Machine] Reset\n";
