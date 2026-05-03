@@ -72,10 +72,6 @@ std::string toJSON() {
       << "\"CO\":"  << ((machine.activeControl() & CO)  ? "true" : "false") << ","
       << "\"J\":"   << ((machine.activeControl() & J)   ? "true" : "false") << ","
       << "\"FI\":"  << ((machine.activeControl() & FI)  ? "true" : "false")
-      << ","
-      << "\"flags\":{"
-        << "\"CF\":" << (machine.flagC() ? "true" : "false") << ","
-        << "\"ZF\":" << (machine.flagZ() ? "true" : "false")
       << "}," 
       << "\"flags\":{" << "\"CF\":" << (machine.flagC() ? "true" : "false") << "," << "\"ZF\":" << (machine.flagZ() ? "true" : "false")
       << "}}";
