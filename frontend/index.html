@@ -638,13 +638,13 @@ function toggleRun() {
     isRunning = !isRunning;
     const btn = document.getElementById('btn-runpause');
     if (isRunning) {
-        btn.textContent = '⏸ PAUSE';
+        btn.textContent = '⏹ STOP';
         btn.classList.add('active');
         sendCmd('run');
     } else {
         btn.textContent = '▶ RUN';
         btn.classList.remove('active');
-        sendCmd('pause');
+        sendCmd('stopped');
     }
 }
 
@@ -652,7 +652,7 @@ function setMode(mode) {
     isRunning = (mode === 'run');
     const btn = document.getElementById('btn-runpause');
     if (btn) {
-        btn.textContent = isRunning ? '⏸ PAUSE' : '▶ RUN';
+        btn.textContent = isRunning ? '⏹ STOP' : '▶ RUN';
         btn.classList.toggle('active', isRunning);
     }
 }

@@ -32,7 +32,7 @@ std::string toJSON() {
       << "\"osc\":\""   << (oscHigh ? "HIGH" : "LOW") << "\"," << "\n"
       << "\"bus\":"      << (int)machine.busData() << ","
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
-      << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "pause") << "\","
+      << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "stopped") << "\","
       << "\"hz\":"       << hz << ","
       << "\"step\":"      << (int)machine.regStep()    << ","
       << "\"instr\":"     << (int)machine.instrCount() << ","
@@ -110,6 +110,7 @@ int main(int argc, char* argv[]) {
         std::string arg = argv[i];
         if (arg == "--verbose") verbose   = true;
         if (arg == "--debug")   debugMode = true;
+        if (arg == "--run")     mode      = Mode::RUN;
     }
     // Last inn testprogram
     std::array<uint8_t, 16> program = {
