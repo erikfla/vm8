@@ -84,18 +84,18 @@ private:
     struct OutDisplay : Component {
         Machine& m;
         uint8_t  last   = 0;
-        bool     active = false;  // true after first OUT instruction
+        bool     active = false;
         explicit OutDisplay(Machine& machine) : m(machine) {}
         void set(const std::string&, bool) override {}
         bool get(const std::string&) const override { return false; }
         void onRisingEdge() override {
-            uint8_t v = m.regOUT_.value();
+            if (!(m.activeControl() & OI)) return;
+            // Les buss-verdien direkte (stabil fra mainClk-fasen)
+            uint8_t v = static_cast<uint8_t>(m.bus_.data());
+            active = true;
             if (v != last) {
-                active = true;   // value changed → OUT fired
                 last = v;
                 std::cout << "[OUT] " << std::dec << (int)v << "\n";
-            } else if (m.activeControl() & OI) {
-                active = true;   // OUT fired with same value as before
             }
         }
     } outDisplay_ { *this };
