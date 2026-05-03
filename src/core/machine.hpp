@@ -45,6 +45,7 @@ public:
 
     uint8_t     ramAt(uint8_t addr) const { return ram_.at(addr); }
     ControlWord activeControl()     const { return bus_.ctrl(); }
+    uint8_t     aluResult()          const { return alu_.compute(); }
     bool        flagC()             const { return alu_.flagCarry(); }
     bool        flagZ()             const { return alu_.flagZero(); }
     uint8_t     busData()           const { return bus_.getData(); }

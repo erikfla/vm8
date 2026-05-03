@@ -48,8 +48,15 @@ public:
     BusALU(SignalBus& bus, const BusRegister& regA, const BusRegister& regB)
         : bus_(bus), regA_(regA), regB_(regB) {}
 
+    // Kombinatorisk: alltid A+B eller A-B, uavhengig av EO
+    uint8_t compute() const {
+        uint16_t r = (bus_.ctrl() & SU)
+            ? (uint16_t)(regA_.value() - regB_.value())
+            : (uint16_t)(regA_.value() + regB_.value());
+        return (uint8_t)r;
+    }
     bool flagCarry() const { return carry_; }
-    bool flagZero()  const { return zero_; }
+    bool flagZero()  const { return zero_;  }
 
 private:
     SignalBus&          bus_;

@@ -45,7 +45,7 @@ std::string toJSON() {
         << "\"IR\":"  << (int)machine.regIR()  << ","
         << "\"A\":"   << (int)machine.regA()   << ","
         << "\"B\":"   << (int)machine.regB()   << ","
-        << "\"ALU\":" << (int)machine.regA()   << ","
+        << "\"ALU\":" << (int)machine.aluResult() << ","
         << "\"OUT\":" << (int)machine.regOUT()
       << "},"
       << "\"ram\":[";
