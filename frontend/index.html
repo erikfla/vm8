@@ -230,7 +230,7 @@
       <span class="reg-label">BUS</span>
       <div class="bit-group" id="reg-BUS"></div>
       <span class="reg-value" id="val-BUS">–</span>
-      <span id="bus-driver" style="font-size:10px; color:#f80; margin-left:8px; min-width:48px; text-align:left;">-</span>
+      <span id="bus-driver" style="font-size:10px; color:#f80; margin-left:8px; min-width:120px; text-align:left;">-</span>
     </div>
   </div>
 
@@ -492,9 +492,19 @@ function applyState(state) {
     setRegLeds('reg-BUS', state.bus, 8);
     document.getElementById('val-BUS').textContent = '0x' + state.bus.toString(16).toUpperCase().padStart(2,'0');
     const ctrl = state.control || {};
+    // Hvem driver bussen (output-signal)?
     const driver = ctrl.CO ? 'PC' : ctrl.RO ? 'RAM' : ctrl.AO ? 'A'
-                 : ctrl.EO ? 'ALU' : ctrl.IO ? 'IR' : '-';
-    document.getElementById('bus-driver').textContent = driver !== '-' ? '<- ' + driver : '-';
+                 : ctrl.EO ? 'ALU' : ctrl.IO ? 'IR' : null;
+    // Hvem leser fra bussen (input-signal)? Kan være flere samtidig.
+    const readers = [
+      ctrl.MI && 'MAR', ctrl.II && 'IR', ctrl.AI && 'A',
+      ctrl.BI && 'B',   ctrl.OI && 'OUT', ctrl.RI && 'RAM',
+      ctrl.J  && 'PC'
+    ].filter(Boolean);
+    const driverTxt  = driver ? '← ' + driver : '';
+    const readersTxt = readers.length ? '→ ' + readers.join(' ') : '';
+    const busLabel   = [driverTxt, readersTxt].filter(Boolean).join('  ') || '–';
+    document.getElementById('bus-driver').textContent = busLabel;
   }
 
   // Registere
