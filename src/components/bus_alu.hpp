@@ -62,6 +62,7 @@ public:
 
     bool flagCarry() const { return carry_; }
     bool flagZero()  const { return zero_; }
+    void clearFlags()      { carry_ = zero_ = carry_pending_ = zero_pending_ = false; }
 
 private:
     SignalBus&          bus_;

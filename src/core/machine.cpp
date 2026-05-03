@@ -35,9 +35,11 @@ Machine::Machine() {
 void Machine::reset() {
     step_.clear();
     instrCount_ = 0;
+    pulseCount_ = 0;
     dbg_.reset();
     clk_.reset();
     bus_.reset();
+    alu_.clearFlags();
 
     regMAR_.setValue(0);
     regA_.setValue(0);
