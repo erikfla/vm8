@@ -217,8 +217,9 @@
       <button class="btn" id="btn-runpause" onclick="toggleRun()">▶ RUN</button>
       <button class="btn" id="btn-step" onclick="sendCmd('step')">STEP</button>
       <div class="btn-sep"></div>
-      <input type="range" id="hz-slider" min="1" max="100" value="1"
-             oninput="sendHz(this.value)">
+      <input type="range" id="hz-slider" min="-1" max="2" step="0.01" value="0"
+             oninput="let v=Math.pow(10,+this.value).toFixed(2); document.getElementById('hz-label').textContent=parseFloat(v)<1?parseFloat(v).toFixed(2)+' Hz':Math.round(v)+' Hz'; sendHz(v);">
+      <span style="font-size:9px;color:#666;display:block;margin-top:2px;">0.1 ··· 1 ··· 10 ··· 100 Hz</span>
       <span id="hz-label" style="font-size:10px; color:#888; min-width:50px;">1 Hz</span>
     </div>
   </div>

@@ -18,7 +18,7 @@ Machine machine;
 
 enum class Mode { RUN, PAUSE };
 Mode mode   = Mode::PAUSE;
-int  hz     = 1;
+float hz    = 1.0f;
 std::atomic<bool> doStep { false };
 bool oscHigh = false;  // 555-oscillator fase
 bool verbose   = false;
@@ -99,8 +99,8 @@ void handleCommand(const std::string& msg) {
 
     auto pos = msg.find("hz=");
     if (pos != std::string::npos) {
-        int newHz = std::stoi(msg.substr(pos + 3));
-        if (newHz > 0 && newHz <= 1000) hz = newHz;
+        float newHz = std::stof(msg.substr(pos + 3));
+        if (newHz >= 0.05f && newHz <= 1000.0f) hz = newHz;
     }
 }
 
@@ -170,15 +170,15 @@ int main(int argc, char* argv[]) {
         // Oscillator (555-timer): toggler alltid på hz-takten, unntatt HLT
         {
             auto oscMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastOsc).count();
-            int  halfPeriod = std::max(1, 500 / hz);
+            int  halfPeriod = std::max(1, (int)(500.0f / hz));
             if (!machine.isHalted() && oscMs >= halfPeriod) {
                 oscHigh = !oscHigh;
                 lastOsc = now;
             }
         }
         if (mode == Mode::RUN && !machine.isHalted()) {
-            if (ms >= 1000 / std::max(1, hz)) {
-                int halfMs = 500 / std::max(1, hz);
+            if (ms >= 1000 / std::max(0.05f, hz)) {
+                int halfMs = 500 / std::max(0.05f, hz);
                 machine.tick();  // rising
                 if (halfMs > 0)
                     std::this_thread::sleep_for(std::chrono::milliseconds(halfMs));
