@@ -152,6 +152,19 @@ int main(int argc, char* argv[]) {
     });
 
     // Kommandoer
+    // POST /load – laster inn program fra frontend (16 bytes, kommaseparert)
+    svr.Post("/load", [](const Request& req, Response& res) {
+        std::array<uint8_t, 16> prog{};
+        std::istringstream ss(req.body);
+        std::string tok;
+        int i = 0;
+        while (std::getline(ss, tok, ',') && i < 16)
+            prog[i++] = (uint8_t)std::stoi(tok);
+        machine.loadProgram(prog);
+        machine.reset();
+        res.set_content("ok", "text/plain");
+    });
+
     svr.Post("/cmd", [](const Request& req, Response& res) {
         handleCommand(req.body);
         res.set_content("ok", "text/plain");

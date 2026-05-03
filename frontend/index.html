@@ -317,6 +317,32 @@
     </div>
   </div>
 
+  <!-- ── Assembler ── -->
+  <div class="section">
+    <div class="section-label">Assembler</div>
+    <textarea id="asm-input" spellcheck="false" style="
+      width:100%; height:160px; box-sizing:border-box;
+      background:#1a1a1a; color:#e0e0e0; border:1px solid #444;
+      font-family:monospace; font-size:12px; padding:8px;
+      resize:vertical; border-radius:3px;">; Test: JC og JZ
+LDA 14     ; A = 200
+ADD 15     ; A = 44, CF=1
+OUT
+JC 7       ; hopp hvis carry
+HLT        ; ikke nådd
+NOP
+NOP
+OUT        ; ikke nådd
+HLT        ; nådd
+NOP NOP NOP NOP NOP
+14: 200
+15: 100</textarea>
+    <div class="controls" style="margin-top:6px;">
+      <button class="btn" onclick="assembleAndLoad()">▶ Assemble &amp; Load</button>
+      <span id="asm-status" style="font-size:11px; color:#aaa; margin-left:10px;"></span>
+    </div>
+  </div>
+
   <!-- ── Minne ── -->
   <div class="section">
     <div class="section-label">RAM · 16 × 8</div>
@@ -673,6 +699,84 @@ function poll() {
         .finally(() => setTimeout(poll, pollInterval));
 }
 poll();
+
+
+  // ── Assembler ──────────────────────────────────────────
+  const OPCODES = {
+    NOP:0x0, LDA:0x1, ADD:0x2, SUB:0x3, OUT:0x4,
+    JMP:0x6, JC:0x7, JZ:0x8, HLT:0xF
+  };
+
+  function assembleAndLoad() {
+    const src    = document.getElementById('asm-input').value;
+    const status = document.getElementById('asm-status');
+    const ram    = new Array(16).fill(0);
+    const labels = {};
+
+    // Første pass: samle label-adresser og data-linjer
+    // Linje-format:  [addr:] MNEMONIC [operand]   ; kommentar
+    //                addr: verdi                   (data)
+    const lines = src.split('\n').map(l => l.replace(/;.*/,'').trim()).filter(Boolean);
+
+    // Finn eksplisitte adresser (data):  14: 200
+    lines.forEach(l => {
+      const m = l.match(/^(\d+):\s*(\d+)$/);
+      if (m) ram[parseInt(m[1])] = parseInt(m[2]) & 0xFF;
+    });
+
+    // Finn label-definisjoner:  loop:
+    let pc = 0;
+    lines.forEach(l => {
+      if (/^\d+:\s*\d+$/.test(l)) return;  // data-linje
+      const lm = l.match(/^(\w+):(.*)$/);
+      if (lm) {
+        labels[lm[1].toUpperCase()] = pc;
+        if (!lm[2].trim()) return;             // bare label, ingen instruksjon
+        l = lm[2].trim();
+      }
+      const parts = l.split(/\s+/);
+      if (OPCODES[parts[0].toUpperCase()] !== undefined) pc++;
+    });
+
+    // Andre pass: generer kode
+    pc = 0;
+    let err = null;
+    lines.forEach(l => {
+      if (err) return;
+      if (/^\d+:\s*\d+$/.test(l)) return;     // data-linje, allerede behandlet
+      const lm = l.match(/^\w+:(.*)$/);
+      if (lm) l = lm[1].trim();
+      if (!l) return;
+
+      const parts = l.split(/\s+/);
+      const mn    = parts[0].toUpperCase();
+      if (OPCODES[mn] === undefined) { err = `Ukjent instruksjon: ${parts[0]}`; return; }
+
+      const op = OPCODES[mn];
+      if (mn === 'NOP' || mn === 'OUT' || mn === 'HLT') {
+        ram[pc++] = op << 4;
+      } else {
+        if (parts.length < 2) { err = `${mn} mangler operand`; return; }
+        let addr = parseInt(parts[1]);
+        if (isNaN(addr)) addr = labels[parts[1].toUpperCase()];
+        if (addr === undefined) { err = `Ukjent label: ${parts[1]}`; return; }
+        if (addr > 15) { err = `Adresse ${addr} > 15`; return; }
+        ram[pc++] = (op << 4) | (addr & 0xF);
+      }
+      if (pc > 16) { err = 'Program er for stort (maks 16 bytes)'; }
+    });
+
+    if (err) { status.textContent = '✗ ' + err; status.style.color='#f88'; return; }
+
+    // Send til vm8
+    fetch('/load', { method:'POST', body: ram.join(',') })
+      .then(r => r.text())
+      .then(() => {
+        status.textContent = '✓ Lastet ' + pc + ' bytes';
+        status.style.color = '#8f8';
+      })
+      .catch(() => { status.textContent = '✗ Tilkoblingsfeil'; status.style.color='#f88'; });
+  }
 
 </script>
 </body>
