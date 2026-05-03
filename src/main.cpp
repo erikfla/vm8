@@ -20,6 +20,7 @@ enum class Mode { RUN, PAUSE };
 Mode mode   = Mode::PAUSE;
 int  hz     = 1;
 std::atomic<bool> doStep { false };
+bool oscHigh = false;  // 555-oscillator fase
 bool verbose   = false;
 bool debugMode = false;
 
@@ -28,6 +29,7 @@ std::string toJSON() {
     std::ostringstream o;
     o << "{"
       << "\"clock\":\""  << (machine.clockHigh() ? "HIGH" : "LOW") << "\","
+      << "\"osc\":\""   << (oscHigh ? "HIGH" : "LOW") << "\"," << "\n"
       << "\"bus\":"      << (int)machine.busData() << ","
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
       << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "pause") << "\","
@@ -156,6 +158,7 @@ int main(int argc, char* argv[]) {
 
     // ── Maskin-løkke i main ───────────────────────────────
     auto lastTick = std::chrono::steady_clock::now();
+    auto lastOsc  = std::chrono::steady_clock::now();  // oscillator-timer
 
     while (true) {
         auto now = std::chrono::steady_clock::now();
@@ -164,6 +167,15 @@ int main(int argc, char* argv[]) {
 
         bool tick = false;
 
+        // Oscillator (555-timer): toggler alltid på hz-takten, unntatt HLT
+        {
+            auto oscMs = std::chrono::duration_cast<std::chrono::milliseconds>(now - lastOsc).count();
+            int  halfPeriod = std::max(1, 500 / hz);
+            if (!machine.isHalted() && oscMs >= halfPeriod) {
+                oscHigh = !oscHigh;
+                lastOsc = now;
+            }
+        }
         if (mode == Mode::RUN && !machine.isHalted()) {
             if (ms >= 1000 / std::max(1, hz)) {
                 int halfMs = 500 / std::max(1, hz);
@@ -175,8 +187,10 @@ int main(int argc, char* argv[]) {
             }
         } else if (mode == Mode::PAUSE && doStep.exchange(false)) {
             int pulseMs = std::max(100, 1000 / (hz * 2));
+            oscHigh = true;
             machine.tick();  // HIGH
             std::this_thread::sleep_for(std::chrono::milliseconds(pulseMs));
+            oscHigh = false;
             machine.tick();  // LOW
             std::this_thread::sleep_for(std::chrono::milliseconds(pulseMs));
         }

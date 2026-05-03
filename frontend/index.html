@@ -482,8 +482,9 @@ function applyState(state) {
   tickCount++;
 
   // Klokke
-  const clkHigh = state.clock === 'HIGH';
-  document.getElementById('led-clk').classList.toggle('on', clkHigh);
+  const clkHigh = state.clock === 'HIGH';          // circuit clock → scope
+  const oscHigh  = (state.osc  === 'HIGH');        // oscillator   → CLK LED
+  document.getElementById('led-clk').classList.toggle('on', oscHigh);
   pushScope(clkHigh, state.hz || 1);
   if (state.edge) showEdge(state.edge);
 
