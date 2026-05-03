@@ -9,6 +9,7 @@
 #include <thread>
 #include <string>
 #include <fstream>
+#include <algorithm>
 #include <sstream>
 #include <array>
 
@@ -174,7 +175,22 @@ int main(int argc, char* argv[]) {
         std::ifstream f(loadFile, std::ios::binary);
         if (!f) { std::cerr << "Error: cannot open " << loadFile << "\n"; return 1; }
         std::array<uint8_t, 16> prog{};
-        f.read(reinterpret_cast<char*>(prog.data()), 16);
+        // Auto-detect: hex text (e.g. "1E 2F 40...") or raw binary
+        std::string first;
+        std::getline(f, first);
+        bool isHex = !first.empty() &&
+                     std::all_of(first.begin(), first.end(),
+                         [](char c){ return std::isxdigit(c) || c==' ' || c=='\t' || c=='\r'; });
+        if (isHex) {
+            std::istringstream ss(first);
+            std::string tok; int i = 0;
+            while (ss >> tok && i < 16)
+                prog[i++] = (uint8_t)std::stoul(tok, nullptr, 16);
+        } else {
+            // Raw binary: rewind and read bytes directly
+            f.clear(); f.seekg(0);
+            f.read(reinterpret_cast<char*>(prog.data()), 16);
+        }
         machine.loadProgram(prog);
     }
     machine.setDebugMode(debugMode);
