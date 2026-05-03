@@ -10,7 +10,7 @@
 // ALLE instruksjoner kjører alltid alle steg – NONE = NOP-mikrosteg.
 // Dette er hardware-akkurat: ingen logikk stopper telleren.
 
-constexpr int MAX_STEPS = 6;
+constexpr int MAX_STEPS = 5;
 
 // Opkoder
 constexpr uint8_t OP_NOP = 0x0;
