@@ -241,15 +241,19 @@ int main(int argc, char* argv[]) {
     });
 
     // Start server i egen tråd
-    // Default program: Fibonacci (Ben Eater SAP-1)
-    // Outputs: 0,1,1,2,3,5,8,13,21,34,55,89,144 → HLT
-    machine.loadProgram({{
-        0x1E, 0x40, 0x2F, 0x7B, 0x5D, 0x1F,
-        0x5E, 0x1D, 0x5F, 0x1E, 0x61, 0xF0,
-        0x00, 0x00, 0x00, 0x01
-    }});
-    machine.reset();
-    std::cout << "[VM8] Default: Fibonacci lastet (0,1,1,2,3,5,...,144 -> HLT)\n";
+    // Last default.bin ved oppstart hvis den finnes
+    {
+        std::ifstream defF("default.bin", std::ios::binary);
+        if (defF) {
+            std::array<uint8_t, 16> prog{};
+            defF.read(reinterpret_cast<char*>(prog.data()), 16);
+            machine.loadProgram(prog);
+            machine.reset();
+            std::cout << "[VM8] default.bin lastet\n";
+        } else {
+            std::cout << "[VM8] Ingen default.bin – starter med tomt RAM\n";
+        }
+    }
 
     std::thread serverThread([&svr]() {
         svr.listen("0.0.0.0", 8765);
