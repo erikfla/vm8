@@ -224,13 +224,28 @@
     </div>
   </div>
 
-  <!-- ── Bus ── -->
-  <div class="section">
-    <div class="section-label">Bus · W</div>
-    <div class="led-register">
-      <span class="reg-label">BUS</span>
-      <div class="bit-group" id="reg-BUS"></div>
-      <span class="reg-value" id="val-BUS">–</span>
+  <!-- ── Bus + Flags ── -->
+  <div class="two-col">
+    <div class="section">
+      <div class="section-label">Bus · W</div>
+      <div class="led-register">
+        <span class="reg-label">BUS</span>
+        <div class="bit-group" id="reg-BUS"></div>
+        <span class="reg-value" id="val-BUS">–</span>
+      </div>
+    </div>
+    <div class="section">
+      <div class="section-label">Flags</div>
+      <div style="display:flex; gap:16px; align-items:flex-end;">
+        <div class="led-labeled">
+          <div class="led" id="led-CF"></div>
+          <div class="led-label">CF</div>
+        </div>
+        <div class="led-labeled">
+          <div class="led" id="led-ZF"></div>
+          <div class="led-label">ZF</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -285,26 +300,11 @@
     </div>
   </div>
 
-  <!-- ── Kontrollsignaler + Flags ── -->
-  <div style="display:flex; gap:20px; align-items:flex-start;">
-    <div class="section" style="flex:1; min-width:0;">
-      <div class="section-label">Control Signals</div>
-      <div class="ctrl-grid" id="ctrl-grid">
-        <!-- Populeres automatisk -->
-      </div>
-    </div>
-    <div class="section" style="flex-shrink:0;">
-      <div class="section-label">Flags</div>
-      <div style="display:flex; flex-direction:row; gap:16px; padding-top:4px;">
-        <div class="led-labeled">
-          <div class="led" id="led-CF"></div>
-          <div class="led-label">CF</div>
-        </div>
-        <div class="led-labeled">
-          <div class="led" id="led-ZF"></div>
-          <div class="led-label">ZF</div>
-        </div>
-      </div>
+  <!-- ── Kontrollsignaler ── -->
+  <div class="section">
+    <div class="section-label">Control Signals</div>
+    <div class="ctrl-grid" id="ctrl-grid">
+      <!-- Populeres automatisk -->
     </div>
   </div>
 
