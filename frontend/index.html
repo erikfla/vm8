@@ -585,9 +585,13 @@ function applyState(state) {
     document.getElementById('val-IR').textContent = '0x' + regs['IR'].toString(16).toUpperCase().padStart(2,'0');
   }
 
-  // Output display (7-seg)
+  // Output display (7-seg) – blank til første OUT-instruksjon
   if (regs['OUT'] !== undefined) {
-    document.getElementById('seven-seg').textContent = regs['OUT'].toString().padStart(3, ' ');
+    const seg = document.getElementById('seven-seg');
+    if (state.out_active)
+      seg.textContent = regs['OUT'].toString().padStart(3, ' ');
+    else
+      seg.textContent = ' – ';
   }
 
   // Flags
