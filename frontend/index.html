@@ -639,18 +639,13 @@ function toggleRun() {
     const btn = document.getElementById('btn-runpause');
     btn.classList.toggle('active', isRunning);
     sendCmd(isRunning ? 'run' : 'pause');
-} else {
-        btn.textContent = '▶ RUN';
-        btn.classList.remove('active');
-        sendCmd('stopped');
-    }
+}
 }
 
 function setMode(mode) {
     isRunning = (mode === 'run');
     const btn = document.getElementById('btn-runpause');
     if (btn) btn.classList.toggle('active', isRunning);
-}
 }
 
 function sendHz(val) {
