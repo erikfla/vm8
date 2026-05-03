@@ -199,7 +199,7 @@
   <div class="section">
     <div class="section-label">Clock Control</div>
     <div class="controls">
-      <button class="btn" id="btn-runpause" onclick="toggleRun()">▶ RUN</button>
+      <button class="btn" id="btn-runpause" onclick="toggleRun()">RUN</button>
       <button class="btn" id="btn-step" onclick="sendCmd('step')">STEP</button>
       <div class="btn-sep"></div>
       <input type="range" id="hz-slider" min="-1" max="2" step="0.01" value="0"
@@ -637,11 +637,9 @@ let isRunning = false;
 function toggleRun() {
     isRunning = !isRunning;
     const btn = document.getElementById('btn-runpause');
-    if (isRunning) {
-        btn.textContent = '⏹ STOP';
-        btn.classList.add('active');
-        sendCmd('run');
-    } else {
+    btn.classList.toggle('active', isRunning);
+    sendCmd(isRunning ? 'run' : 'pause');
+} else {
         btn.textContent = '▶ RUN';
         btn.classList.remove('active');
         sendCmd('stopped');
@@ -651,10 +649,8 @@ function toggleRun() {
 function setMode(mode) {
     isRunning = (mode === 'run');
     const btn = document.getElementById('btn-runpause');
-    if (btn) {
-        btn.textContent = isRunning ? '⏹ STOP' : '▶ RUN';
-        btn.classList.toggle('active', isRunning);
-    }
+    if (btn) btn.classList.toggle('active', isRunning);
+}
 }
 
 function sendHz(val) {
