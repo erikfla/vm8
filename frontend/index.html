@@ -231,53 +231,69 @@
       <span class="reg-label">BUS</span>
       <div class="bit-group" id="reg-BUS"></div>
       <span class="reg-value" id="val-BUS">–</span>
-      <span id="bus-driver" style="font-size:10px; color:#f80; margin-left:8px; min-width:120px; text-align:left;">-</span>
     </div>
   </div>
 
-  <!-- ── Registere ── -->
+  <!-- ── Registere + Output side om side ── -->
+  <div class="two-col" style="align-items:flex-start;">
+    <div class="section" style="min-width:0; flex:1;">
+      <div class="section-label">Registers</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div class="led-register">
+          <span class="reg-label">PC</span>
+          <div class="bit-group" id="reg-PC"></div>
+          <span class="reg-value" id="val-PC">–</span>
+        </div>
+        <div class="led-register">
+          <span class="reg-label">MAR</span>
+          <div class="bit-group" id="reg-MAR"></div>
+          <span class="reg-value" id="val-MAR">–</span>
+        </div>
+        <div class="led-register">
+          <span class="reg-label">IR</span>
+          <div class="bit-group" id="reg-IR-hi"></div>
+          <div class="bit-group" id="reg-IR-lo"></div>
+          <span class="reg-value" id="val-IR">–</span>
+        </div>
+        <div class="led-register">
+          <span class="reg-label">A</span>
+          <div class="bit-group" id="reg-A"></div>
+          <span class="reg-value" id="val-A">–</span>
+        </div>
+        <div class="led-register">
+          <span class="reg-label">B</span>
+          <div class="bit-group" id="reg-B"></div>
+          <span class="reg-value" id="val-B">–</span>
+        </div>
+        <div class="led-register">
+          <span class="reg-label" title="Kombinatorisk — alltid A+B eller A–B">A±B</span>
+          <div class="bit-group" id="reg-ALU"></div>
+          <span class="reg-value" id="val-ALU">–</span>
+        </div>
+      </div>
+    </div>
+    <div class="section" style="min-width:0; flex:1;">
+      <div class="section-label">Output</div>
+      <div style="display:flex; flex-direction:column; gap:8px;">
+        <div class="led-register">
+          <span class="reg-label">OUT</span>
+          <div class="bit-group" id="reg-OUT"></div>
+          <span class="reg-value" id="val-OUT">–</span>
+        </div>
+        <div class="seven-seg" id="seven-seg">–</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Kontrollsignaler + Flags ── -->
   <div class="section">
-    <div class="section-label">Registers</div>
-    <div style="display:flex; flex-direction:column; gap:8px;">
-      <div class="led-register">
-        <span class="reg-label">PC</span>
-        <div class="bit-group" id="reg-PC"></div>
-        <span class="reg-value" id="val-PC">–</span>
+    <div class="section-label">Control Signals</div>
+    <div style="display:flex; align-items:flex-start; gap:24px;">
+      <div class="ctrl-grid" id="ctrl-grid" style="flex:1;">
+        <!-- Populeres automatisk -->
       </div>
-      <div class="led-register">
-        <span class="reg-label">MAR</span>
-        <div class="bit-group" id="reg-MAR"></div>
-        <span class="reg-value" id="val-MAR">–</span>
-      </div>
-      <div class="led-register">
-        <span class="reg-label">IR</span>
-        <div class="bit-group" id="reg-IR-hi"></div>
-        <div class="bit-group" id="reg-IR-lo"></div>
-        <span class="reg-value" id="val-IR">–</span>
-      </div>
-      <div class="led-register">
-        <span class="reg-label">A</span>
-        <div class="bit-group" id="reg-A"></div>
-        <span class="reg-value" id="val-A">–</span>
-      </div>
-      <div class="led-register">
-        <span class="reg-label">B</span>
-        <div class="bit-group" id="reg-B"></div>
-        <span class="reg-value" id="val-B">–</span>
-      </div>
-      <div class="led-register">
-        <span class="reg-label" title="Kombinatorisk — alltid A+B eller A–B">A±B</span>
-        <div class="bit-group" id="reg-ALU"></div>
-        <span class="reg-value" id="val-ALU">–</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Flags og Output ── -->
-  <div class="two-col">
-    <div class="section">
-      <div class="section-label">Flags</div>
-      <div style="display:flex; gap:16px;">
+      <div style="display:flex; flex-direction:column; gap:10px; padding-top:2px;">
+        <div style="font-size:9px; color:#888; text-transform:uppercase; letter-spacing:1px;">Flags</div>
         <div class="led-labeled">
           <div class="led" id="led-CF"></div>
           <div class="led-label">CF</div>
@@ -287,23 +303,6 @@
           <div class="led-label">ZF</div>
         </div>
       </div>
-    </div>
-    <div class="section">
-      <div class="section-label">Output</div>
-      <div class="out-display">
-        <div class="led-register">
-          <div class="bit-group" id="reg-OUT"></div>
-        </div>
-        <div class="seven-seg" id="seven-seg">–</div>
-      </div>
-    </div>
-  </div>
-
-  <!-- ── Kontrollsignaler ── -->
-  <div class="section">
-    <div class="section-label">Control Signals</div>
-    <div class="ctrl-grid" id="ctrl-grid">
-      <!-- Populeres automatisk -->
     </div>
   </div>
 
