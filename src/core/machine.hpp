@@ -91,7 +91,7 @@ private:
         void onRisingEdge() override {
             if (!(m.activeControl() & OI)) return;
             // Les buss-verdien direkte (stabil fra mainClk-fasen)
-            uint8_t v = static_cast<uint8_t>(m.bus_.data());
+            uint8_t v = static_cast<uint8_t>(m.bus_.getData());
             active = true;
             if (v != last) {
                 last = v;
