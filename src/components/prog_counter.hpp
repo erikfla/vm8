@@ -5,38 +5,42 @@
 #include "../core/control.hpp"
 #include <cstdint>
 
-// ProgCounter – 4-bit programteller.
+// ProgCounter – 4-bit programteller med to porter.
 //
-// Analogi: 74LS163 (4-bit binær teller) koblet til bussen.
-// Ben Eater bruker én slik krets for PC.
+// Analogi: 74LS163 fra Ben Eater, koblet til hoved-CLK.
 //
-// Kontrollbits:
-//   CO  (Program Counter Out)    – rising edge: skriv PC til bus
-//   CE  (Counter Enable)         – falling edge: inkrementer PC
-//   J   (Jump)                   – falling edge: last inn bus.data som ny PC
+//   output – kobles til mainClk:    CO → skriv PC til bus
+//   input  – kobles til controlClk: CE → inkrementer, J → hopp
 
-class ProgCounter : public Component {
+class ProgCounter {
 public:
+    struct OutputPort : Component {
+        ProgCounter& pc;
+        explicit OutputPort(ProgCounter& p) : pc(p) {}
+        void set(const std::string&, bool) override {}
+        bool get(const std::string&) const override { return false; }
+        void onRisingEdge() override {
+            if (pc.bus_.ctrl() & CO)
+                pc.bus_.setData(pc.val_);
+        }
+    } output { *this };
+
+    struct InputPort : Component {
+        ProgCounter& pc;
+        explicit InputPort(ProgCounter& p) : pc(p) {}
+        void set(const std::string&, bool) override {}
+        bool get(const std::string&) const override { return false; }
+        void onRisingEdge() override {
+            if (pc.bus_.ctrl() & J)
+                pc.val_ = pc.bus_.getData() & 0x0F;
+            else if (pc.bus_.ctrl() & CE)
+                pc.val_ = (pc.val_ + 1) & 0x0F;
+        }
+    } input { *this };
+
     explicit ProgCounter(SignalBus& bus) : bus_(bus) {}
 
-    void set(const std::string&, bool) override {}
-    bool get(const std::string&) const override { return false; }
-
-    // Rising edge: CO → skriv PC til buss
-    void onRisingEdge() override {
-        if (bus_.ctrl() & CO)
-            bus_.setData(val_);
-    }
-
-    // Falling edge: CE → inkrementer, J → hopp (load fra bus)
-    void onFallingEdge() override {
-        if (bus_.ctrl() & J)
-            val_ = bus_.getData() & 0x0F;   // 4-bit
-        else if (bus_.ctrl() & CE)
-            val_ = (val_ + 1) & 0x0F;
-    }
-
-    uint8_t value() const { return val_; }
+    uint8_t value()       const { return val_; }
     void    setValue(uint8_t v) { val_ = v & 0x0F; }
 
 private:

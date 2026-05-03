@@ -2,29 +2,18 @@
 #pragma once
 #include <string>
 
-// Grensesnittet alle hardware-komponenter må implementere.
+// Component – abstrakt grensesnitt for alle kretskort-komponenter.
 //
-// En komponent modellerer én fysisk krets – en flipflop, et register,
-// en ALU, eller en proxy mot ekte hardware. Maskinen kobler komponenter
-// sammen via SignalBus og driver dem med Clock.
-//
-// Analogi: pinnene på en 74LS-krets. Du setter innganger, leser utganger,
-// og komponenten reagerer på klokkekanten.
+// Alle komponenter kobler seg til SignalBus og reagerer på
+// rising/falling edge – akkurat som ekte TTL-brikker.
 
 class Component {
 public:
-    // Sett en inngang (som å legge HIGH/LOW på en pinne)
-    virtual void set(const std::string& pin, bool value) = 0;
-
-    // Les en utgang
-    virtual bool get(const std::string& pin) const = 0;
-
-    // Klokken gikk LOW → HIGH
-    virtual void onRisingEdge()  {}
-
-    // Klokken gikk HIGH → LOW
-    virtual void onFallingEdge() {}
-
-    // Alltid virtual destructor i C++ når du bruker arv
     virtual ~Component() = default;
+
+    virtual void set(const std::string& signal, bool value) = 0;
+    virtual bool get(const std::string& signal) const = 0;
+
+    virtual void onRisingEdge()  {}  // default: ingen handling
+    virtual void onFallingEdge() {}
 };

@@ -2,31 +2,26 @@
 #pragma once
 #include "component.hpp"
 
-// Klokken driver hele maskinen.
-//
-// Hver tick() veksler mellom HIGH og LOW og returnerer
-// hvilken kant som nettopp skjedde.
-//
-// Pinner:
-//   Ut:  CLK  (HIGH eller LOW)
+enum class Edge { None, Rising, Falling };
 
-enum class Edge {
-    None,
-    Rising,   // LOW → HIGH
-    Falling   // HIGH → LOW
-};
+// Clock – to-fase klokke som Ben Eaters 555-timer.
+//
+// tick() veksler tilstand og returnerer hvilken flanke som oppstod.
+// isHigh() brukes til å sjekke gjeldende klokkefase.
 
 class Clock : public Component {
 public:
-    void set(const std::string& /*pin*/, bool /*value*/) override {}
-    bool get(const std::string& pin) const override;
+    void set(const std::string&, bool) override {}
+    bool get(const std::string&) const override { return high_; }
 
-    // Én halvpuls – returnerer kanten som skjedde
-    Edge tick();
+    Edge tick() {
+        high_ = !high_;
+        return high_ ? Edge::Rising : Edge::Falling;
+    }
 
-    void reset();
-    bool isHigh() const { return state; }
+    bool isHigh() const { return high_; }
+    void reset()        { high_ = false; }
 
 private:
-    bool state = false;
+    bool high_ = false;
 };

@@ -2,31 +2,25 @@
 #pragma once
 #include <cstdint>
 
-// Kontrollord – én bit per signal.
-// Kombineres med bitwise OR: CO|MI betyr "PC ut og MAR inn samtidig"
-//
-// Navngiving følger Ben Eater sin SAP-1:
-// Suffiks O = Output (ut på bussen)
-// Suffiks I = Input  (inn fra bussen)
+// Kontrollord – 16-bit bitmask, ett bit per kontrollsignal.
+// Tilsvarer Ben Eaters 16-bits kontrollinjen.
 
-using ControlWord = uint32_t;
+using ControlWord = uint16_t;
 
-// ── Kontrollsignaler ─────────────────────────────────────
 constexpr ControlWord NONE = 0;
-
-constexpr ControlWord HLT  = 1 << 0;   // Halt
-constexpr ControlWord MI   = 1 << 1;   // Memory Address Register In
-constexpr ControlWord RI   = 1 << 2;   // RAM In
-constexpr ControlWord RO   = 1 << 3;   // RAM Out
-constexpr ControlWord IO   = 1 << 4;   // Instruction Register Out (operand)
-constexpr ControlWord II   = 1 << 5;   // Instruction Register In
-constexpr ControlWord AI   = 1 << 6;   // A Register In
-constexpr ControlWord AO   = 1 << 7;   // A Register Out
-constexpr ControlWord EO   = 1 << 8;   // ALU Out (sum)
-constexpr ControlWord SU   = 1 << 9;   // Subtract
-constexpr ControlWord BI   = 1 << 10;  // B Register In
-constexpr ControlWord OI   = 1 << 11;  // Output Register In
-constexpr ControlWord CE   = 1 << 12;  // Program Counter Enable (increment)
-constexpr ControlWord CO   = 1 << 13;  // Program Counter Out
-constexpr ControlWord J    = 1 << 14;  // Jump
-constexpr ControlWord FI   = 1 << 15;  // Flags In
+constexpr ControlWord HLT  = 1 << 15;
+constexpr ControlWord MI   = 1 << 14;
+constexpr ControlWord RI   = 1 << 13;
+constexpr ControlWord RO   = 1 << 12;
+constexpr ControlWord IO   = 1 << 11;
+constexpr ControlWord II   = 1 << 10;
+constexpr ControlWord AI   = 1 << 9;
+constexpr ControlWord AO   = 1 << 8;
+constexpr ControlWord EO   = 1 << 7;
+constexpr ControlWord SU   = 1 << 6;
+constexpr ControlWord BI   = 1 << 5;
+constexpr ControlWord OI   = 1 << 4;
+constexpr ControlWord CE   = 1 << 3;
+constexpr ControlWord CO   = 1 << 2;
+constexpr ControlWord J    = 1 << 1;
+constexpr ControlWord FI   = 1 << 0;

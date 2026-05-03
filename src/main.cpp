@@ -20,20 +20,22 @@ enum class Mode { RUN, PAUSE };
 Mode mode   = Mode::PAUSE;
 int  hz     = 1;
 std::atomic<bool> doStep { false };
-bool verbose = false;
+bool verbose   = false;
+bool debugMode = false;
 
 // ── JSON ─────────────────────────────────────────────────
 std::string toJSON() {
     std::ostringstream o;
     o << "{"
-      << "\"clock\":\""  << (machine.clock().isHigh() ? "HIGH" : "LOW") << "\","
+      << "\"clock\":\""  << (machine.clockHigh() ? "HIGH" : "LOW") << "\","
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
       << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "pause") << "\","
       << "\"hz\":"       << hz << ","
       << "\"step\":"      << (int)machine.regStep()    << ","
       << "\"instr\":"     << (int)machine.instrCount() << ","
-      << "\"dbg_frozen\":" << (machine.dbgFrozen() ? "true" : "false") << ","
-      << "\"dbg_depth\":"  << (int)machine.dbgCount()  << ","
+      << "\"dbg_enabled\":" << (debugMode ? "true" : "false") << ","
+      << "\"dbg_frozen\":"  << (machine.dbgFrozen() ? "true" : "false") << ","
+      << "\"dbg_depth\":"   << (int)machine.dbgCount()  << ","
       << "\"registers\":{"
         << "\"PC\":"  << (int)machine.regPC()  << ","
         << "\"MAR\":" << (int)machine.regMAR() << ","
@@ -72,12 +74,23 @@ std::string toJSON() {
 
 // ── Kommandoer fra frontend ───────────────────────────────
 void handleCommand(const std::string& msg) {
-    if (msg == "step")       { doStep = true; return; }
+    if (msg == "step") {
+        if (machine.dbgFrozen()) {
+            mode = Mode::PAUSE;
+            if (!machine.dbgStepForward()) {
+                machine.dbgResume();
+                doStep = true;
+            }
+        } else {
+            doStep = true;
+        }
+        return;
+    }
     if (msg == "run")        { mode = Mode::RUN;   machine.dbgResume(); return; }
     if (msg == "pause")      { mode = Mode::PAUSE; return; }
     if (msg == "reset")      { machine.reset();    return; }
     if (msg == "dbg_back")   { mode = Mode::PAUSE; machine.dbgStepBack();    return; }
-    if (msg == "dbg_fwd")    { mode = Mode::PAUSE; machine.dbgStepForward(); return; }
+    if (msg == "dbg_fwd")    { mode = Mode::PAUSE; if (!machine.dbgStepForward()) machine.dbgResume(); return; }
     if (msg == "dbg_chk")    { machine.dbgSetCheckpoint("A"); return; }
     if (msg == "dbg_jump")   { mode = Mode::PAUSE; machine.dbgJumpToCheckpoint(); return; }
 
@@ -90,7 +103,11 @@ void handleCommand(const std::string& msg) {
 
 // ── Main ─────────────────────────────────────────────────
 int main(int argc, char* argv[]) {
-    if (argc > 1 && std::string(argv[1]) == "--verbose") verbose = true;
+    for (int i = 1; i < argc; i++) {
+        std::string arg = argv[i];
+        if (arg == "--verbose") verbose   = true;
+        if (arg == "--debug")   debugMode = true;
+    }
     // Last inn testprogram
     std::array<uint8_t, 16> program = {
         0x1E,  // LDA 14
@@ -101,6 +118,8 @@ int main(int argc, char* argv[]) {
         28, 14
     };
     machine.loadProgram(program);
+    machine.setDebugMode(debugMode);
+    if (debugMode) std::cout << "[Debugger] Aktivert (256-snapshot ring buffer)\n";
 
     Server svr;
 
@@ -129,7 +148,7 @@ int main(int argc, char* argv[]) {
         return Server::HandlerResponse::Unhandled;
     });
 
-    // Start server i egen tråd (eneste tråd vi trenger)
+    // Start server i egen tråd
     std::thread serverThread([&svr]() {
         svr.listen("0.0.0.0", 8765);
     });
@@ -146,7 +165,11 @@ int main(int argc, char* argv[]) {
 
         if (mode == Mode::RUN && !machine.isHalted()) {
             if (ms >= 1000 / std::max(1, hz)) {
-                machine.tick();
+                int halfMs = 500 / std::max(1, hz);
+                machine.tick();  // rising
+                if (halfMs > 0)
+                    std::this_thread::sleep_for(std::chrono::milliseconds(halfMs));
+                machine.tick();  // falling
                 lastTick = now;
             }
         } else if (mode == Mode::PAUSE && doStep.exchange(false)) {
