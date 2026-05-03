@@ -177,8 +177,8 @@ int main(int argc, char* argv[]) {
             }
         }
         if (mode == Mode::RUN && !machine.isHalted()) {
-            if (ms >= 1000 / std::max(0.05f, hz)) {
-                int halfMs = 500 / std::max(0.05f, hz);
+            if ((float)ms >= 1000.0f / std::max(0.05f, hz)) {
+                int halfMs = (int)(500.0f / std::max(0.05f, hz));
                 machine.tick();  // rising
                 if (halfMs > 0)
                     std::this_thread::sleep_for(std::chrono::milliseconds(halfMs));
@@ -186,7 +186,7 @@ int main(int argc, char* argv[]) {
                 lastTick = now;
             }
         } else if (mode == Mode::PAUSE && doStep.exchange(false)) {
-            int pulseMs = std::max(100, 1000 / (hz * 2));
+            int pulseMs = std::max(100, (int)(1000.0f / (hz * 2.0f)));
             oscHigh = true;
             machine.tick();  // HIGH
             std::this_thread::sleep_for(std::chrono::milliseconds(pulseMs));
