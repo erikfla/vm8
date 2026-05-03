@@ -76,6 +76,8 @@ std::string toJSON() {
       << "\"flags\":{"
         << "\"CF\":" << (machine.flagC() ? "true" : "false") << ","
         << "\"ZF\":" << (machine.flagZ() ? "true" : "false")
+      << "}," 
+      << "\"flags\":{" << "\"CF\":" << (machine.flagC() ? "true" : "false") << "," << "\"ZF\":" << (machine.flagZ() ? "true" : "false")
       << "}}";
     return o.str();
 }
