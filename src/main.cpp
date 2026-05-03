@@ -248,6 +248,8 @@ int main(int argc, char* argv[]) {
         0x5E, 0x1D, 0x5F, 0x1E, 0x61, 0xF0,
         0x00, 0x00, 0x00, 0x01
     }});
+    machine.reset();
+    std::cout << "[VM8] Default: Fibonacci lastet (0,1,1,2,3,5,...,144 -> HLT)\n";
 
     std::thread serverThread([&svr]() {
         svr.listen("0.0.0.0", 8765);
