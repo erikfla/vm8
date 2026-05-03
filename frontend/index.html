@@ -383,6 +383,7 @@ function setRegLeds(containerId, value, bits) {
 buildBitLeds('reg-BUS',   8, '');
 buildBitLeds('reg-PC',    4, 'green');
 buildBitLeds('reg-MAR',   4, 'yellow');
+buildBitLeds('reg-MEM',   8, 'yellow');    // RAM[MAR] kombinatorisk
 buildBitLeds('reg-IR-hi', 4, 'blue');       // opcode
 buildBitLeds('reg-IR-lo', 4, 'yellow');   // operand
 buildBitLeds('reg-A',     8, '');
