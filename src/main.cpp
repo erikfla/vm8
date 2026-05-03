@@ -35,10 +35,12 @@ std::string toJSON() {
       << "\"osc\":\""   << (oscHigh ? "HIGH" : "LOW") << "\"," << "\n"
       << "\"bus\":"      << (int)machine.busData() << ","
       << "\"halted\":"   << (machine.isHalted() ? "true" : "false") << ","
+      << "\"out_active\":" << (machine.outActive() ? "true" : "false") << ","
       << "\"mode\":\""   << (mode == Mode::RUN ? "run" : "stopped") << "\","
       << "\"hz\":"       << hz << ","
       << "\"step\":"      << (int)machine.regStep()    << ","
       << "\"instr\":"     << (int)machine.instrCount() << ","
+      << "\"pulse\":" << machine.pulseCount() << ","
       << "\"dbg_enabled\":" << (debugMode ? "true" : "false") << ","
       << "\"dbg_frozen\":"  << (machine.dbgFrozen() ? "true" : "false") << ","
       << "\"dbg_depth\":"   << (int)machine.dbgCount()  << ","
@@ -240,6 +242,12 @@ int main(int argc, char* argv[]) {
 
     // Start server i egen tråd
     std::thread serverThread([&svr]() {
+    // Default program: Fibonacci (Ben Eater SAP-1)
+    // Outputs: 0,1,1,2,3,5,8,13,21,34,55,89,144 → HLT
+    machine.loadProgram({{
+        0x1E, 0x40, 0x2F, 0x7B, 0x5D, 0x1F, 0x5E, 0x1D, 0x5F, 0x1E, 0x61, 0xF0, 0x00, 0x00, 0x00, 0x01
+    }});
+
         svr.listen("0.0.0.0", 8765);
     });
 
