@@ -20,7 +20,8 @@ enum class Mode { RUN, PAUSE };
 Mode mode   = Mode::PAUSE;
 float hz    = 1.0f;
 std::atomic<bool> doStep { false };
-bool oscHigh = false;  // 555-oscillator fase
+bool oscHigh = false;
+bool wasHalted  = false;  // 555-oscillator fase
 bool verbose   = false;
 bool debugMode = false;
 
