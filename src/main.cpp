@@ -197,12 +197,12 @@ int main(int argc, char* argv[]) {
         }
 
         if (tick) machine.tick();
-
         // Detekter HLT-overgang
-        bool isHalted = machine.isHalted();
-        if (isHalted && !wasHalted)
-            std::cout << "[Machine] Halted\n";
-        wasHalted = isHalted;
+        if (machine.isHalted() && !wasHalted) {
+            std::cout << "[Machine] Halted
+";
+            wasHalted = true;
+        }
 
         std::this_thread::sleep_for(std::chrono::milliseconds(5));
     }
