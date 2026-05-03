@@ -617,7 +617,8 @@ function applyState(state) {
   // Instruksjonsteller + opcode-navn / FETCH + aktive kontrollsignaler
   const OPCODES = {
     0x0:'NOP', 0x1:'LDA', 0x2:'ADD', 0x3:'SUB',
-    0x4:'OUT', 0xF:'HLT'
+    0x4:'OUT', 0x5:'STA', 0x6:'JMP', 0x7:'JC ',
+    0x8:'JZ ', 0x9:'LDI', 0xF:'HLT'
   };
   if (state.instr !== undefined) {
     const opcode  = (regs['IR'] >> 4) & 0xF;
