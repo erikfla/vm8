@@ -8,6 +8,7 @@
 #include <chrono>
 #include <thread>
 #include <string>
+#include <fstream>
 #include <sstream>
 #include <array>
 
@@ -108,12 +109,73 @@ void handleCommand(const std::string& msg) {
 }
 
 // ── Main ─────────────────────────────────────────────────
+static void printHelp() {
+    std::cout <<
+"vm8 – 8-bit SAP-1 computer simulator\n"
+"\n"
+"USAGE\n"
+"  ./vm8 [options]\n"
+"\n"
+"OPTIONS\n"
+"  --run            Start in run mode (default: paused)\n"
+"  --load <file>    Load binary program file (16 bytes raw)\n"
+"  --debug          Enable ring-buffer debugger (256 snapshots)\n"
+"  --verbose        Print JSON state to stdout on every /state poll\n"
+"  --help           Show this help message\n"
+"\n"
+"ARCHITECTURE\n"
+"  SAP-1 (Simple As Possible) – Ben Eater inspired\n"
+"  8-bit data bus · 4-bit address space (16 bytes RAM)\n"
+"  Two-phase clock: mainClk (outputs) / controlClk (inputs)\n"
+"  5 microsteps per instruction (T0-T4)\n"
+"\n"
+"INSTRUCTION SET\n"
+"  0x0  NOP            No operation\n"
+"  0x1  LDA <addr>     Load RAM[addr] into A\n"
+"  0x2  ADD <addr>     A = A + RAM[addr], update CF/ZF\n"
+"  0x3  SUB <addr>     A = A - RAM[addr], update CF/ZF\n"
+"  0x4  OUT            Output A to display\n"
+"  0x6  JMP <addr>     Jump to addr\n"
+"  0x7  JC  <addr>     Jump to addr if carry flag set\n"
+"  0x8  JZ  <addr>     Jump to addr if zero flag set\n"
+"  0xF  HLT            Halt\n"
+"\n"
+"FRONTEND\n"
+"  Web UI at http://localhost:8765\n"
+"  Includes assembler, RAM viewer, register display,\n"
+"  control signals, microcode step, and flag LEDs.\n"
+"\n"
+"ASSEMBLER (in the web UI)\n"
+"  LDA 14      ; load from address 14\n"
+"  ADD 15      ; add value at address 15\n"
+"  JC loop     ; jump to label if carry\n"
+"  14: 200     ; data at address 14\n"
+"  loop: OUT   ; label definition\n"
+"\n"
+"EXAMPLES\n"
+"  ./vm8                        Start paused, open http://localhost:8765\n"
+"  ./vm8 --run                  Start running immediately\n"
+"  ./vm8 --load code.bin        Load program from file\n"
+"  ./vm8 --load code.bin --run  Load and run\n"
+"\n";
+}
+
 int main(int argc, char* argv[]) {
+    std::string loadFile;
     for (int i = 1; i < argc; i++) {
         std::string arg = argv[i];
+        if (arg == "--help")    { printHelp(); return 0; }
         if (arg == "--verbose") verbose   = true;
         if (arg == "--debug")   debugMode = true;
         if (arg == "--run")     mode      = Mode::RUN;
+        if (arg == "--load" && i+1 < argc) loadFile = argv[++i];
+    }
+    if (!loadFile.empty()) {
+        std::ifstream f(loadFile, std::ios::binary);
+        if (!f) { std::cerr << "Error: cannot open " << loadFile << "\n"; return 1; }
+        std::array<uint8_t, 16> prog{};
+        f.read(reinterpret_cast<char*>(prog.data()), 16);
+        machine.loadProgram(prog);
     }
     machine.setDebugMode(debugMode);
     if (debugMode) std::cout << "[Debugger] Aktivert (256-snapshot ring buffer)\n";
