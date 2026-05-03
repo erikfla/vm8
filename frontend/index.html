@@ -324,19 +324,22 @@
       width:100%; height:160px; box-sizing:border-box;
       background:#1a1a1a; color:#e0e0e0; border:1px solid #444;
       font-family:monospace; font-size:12px; padding:8px;
-      resize:vertical; border-radius:3px;">; Count up by 3, output each value, loop forever
-loop:
-  LDI 3      ; A = 3 (immediate)
-  ADD cnt    ; A = A + counter
-  STA cnt    ; counter = A
-  OUT        ; display counter
-  JC reset   ; overflow? reset counter
-  JMP loop   ; keep counting
-reset:
-  LDI 0      ; A = 0
-  STA cnt    ; counter = 0
-  JMP loop
-cnt: 0       ; counter variable</textarea>
+      resize:vertical; border-radius:3px;">
+LDA 14
+loop:   OUT
+        ADD 15
+        JC done
+        STA 13
+        LDA 15
+        STA 14
+        LDA 13
+        STA 15
+        LDA 14
+        JMP loop
+done:   HLT
+13: 0
+14: 0
+15: 1</textarea>
     <div class="controls" style="margin-top:6px;">
       <button class="btn" onclick="assembleAndLoad()">▶ Assemble &amp; Load</button>
       <span id="asm-status" style="font-size:11px; color:#aaa; margin-left:10px;"></span>
