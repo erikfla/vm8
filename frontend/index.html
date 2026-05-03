@@ -539,6 +539,14 @@ function applyState(state) {
     }
   });
 
+  // MEM = RAM[MAR] — kombinatorisk minneinnhold
+  if (state.ram && regs['MAR'] !== undefined) {
+    const memVal = state.ram[regs['MAR']] || 0;
+    setRegLeds('reg-MEM', memVal, 8);
+    const memValEl = document.getElementById('val-MEM');
+    if (memValEl) memValEl.textContent = '0x' + memVal.toString(16).toUpperCase().padStart(2,'0');
+  }
+
   // IR spesialhåndtering (delt i opcode/operand)
   if (regs['IR'] !== undefined) {
     setRegLeds('reg-IR-hi', (regs['IR'] >> 4) & 0xF, 4);
