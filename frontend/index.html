@@ -324,22 +324,19 @@
       width:100%; height:160px; box-sizing:border-box;
       background:#1a1a1a; color:#e0e0e0; border:1px solid #444;
       font-family:monospace; font-size:12px; padding:8px;
-      resize:vertical; border-radius:3px;">; Demo: carry flag (JC) and zero flag (JZ)
-LDA 14     ; A = 200
-ADD 15     ; A = 44, CF=1 (300 overflows 8-bit)
-OUT        ; output 44
-JC 7       ; carry set → jump to addr 7
-HLT        ; not reached
-NOP
-LDA 14     ; A = 200
-SUB 14     ; A = 0, ZF=1
-OUT        ; output 0
-JZ 12      ; zero set → jump to addr 12
-HLT        ; not reached
-NOP
-HLT        ; reached
-14: 200
-15: 100</textarea>
+      resize:vertical; border-radius:3px;">; Count up by 3, output each value, loop forever
+loop:
+  LDI 3      ; A = 3 (immediate)
+  ADD cnt    ; A = A + counter
+  STA cnt    ; counter = A
+  OUT        ; display counter
+  JC reset   ; overflow? reset counter
+  JMP loop   ; keep counting
+reset:
+  LDI 0      ; A = 0
+  STA cnt    ; counter = 0
+  JMP loop
+cnt: 0       ; counter variable</textarea>
     <div class="controls" style="margin-top:6px;">
       <button class="btn" onclick="assembleAndLoad()">▶ Assemble &amp; Load</button>
       <span id="asm-status" style="font-size:11px; color:#aaa; margin-left:10px;"></span>
@@ -713,7 +710,7 @@ poll();
   // ── Assembler ──────────────────────────────────────────
   const OPCODES = {
     NOP:0x0, LDA:0x1, ADD:0x2, SUB:0x3, OUT:0x4,
-    JMP:0x6, JC:0x7, JZ:0x8, HLT:0xF
+    STA:0x5, JMP:0x6, JC:0x7, JZ:0x8, LDI:0x9, HLT:0xF
   };
 
   function assembleAndLoad() {
