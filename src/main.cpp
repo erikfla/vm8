@@ -115,26 +115,6 @@ int main(int argc, char* argv[]) {
         if (arg == "--debug")   debugMode = true;
         if (arg == "--run")     mode      = Mode::RUN;
     }
-    // Last inn testprogram
-    std::array<uint8_t, 16> program = {
-        // Test CF og JC:
-        0x1E,  // 0: LDA 14   → A = 200
-        0x2F,  // 1: ADD 15   → A = 44, CF=1 (300 overflow)
-        0x40,  // 2: OUT      → [OUT] 44
-        0x75,  // 3: JC 5     → CF=1, hopper til 5
-        0xF0,  // 4: HLT      → nås ikke
-        // Test ZF og JZ:
-        0x1E,  // 5: LDA 14   → A = 200
-        0x3E,  // 6: SUB 14   → A = 0, ZF=1
-        0x40,  // 7: OUT      → [OUT] 0
-        0x8A,  // 8: JZ 10    → ZF=1, hopper til 10
-        0xF0,  // 9: HLT      → nås ikke
-        0xF0,  // 10: HLT     → nås!
-        0, 0, 0,
-        200,   // 14: første operand
-        100,   // 15: andre operand
-    };
-    machine.loadProgram(program);
     machine.setDebugMode(debugMode);
     if (debugMode) std::cout << "[Debugger] Aktivert (256-snapshot ring buffer)\n";
 
