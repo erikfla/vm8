@@ -297,14 +297,13 @@
 
   <!-- ── Mikrosteg-teller ── -->
   <div class="section">
-    <div class="section-label">Microcode Step · T0 – T5</div>
+    <div class="section-label">Microcode Step · T0 – T4</div>
     <div style="display:flex; gap:16px; align-items:flex-end;">
       <div class="led-labeled"><div class="led blue" id="led-step-0"></div><div class="led-label">T0</div></div>
       <div class="led-labeled"><div class="led blue" id="led-step-1"></div><div class="led-label">T1</div></div>
       <div class="led-labeled"><div class="led blue" id="led-step-2"></div><div class="led-label">T2</div></div>
       <div class="led-labeled"><div class="led blue" id="led-step-3"></div><div class="led-label">T3</div></div>
       <div class="led-labeled"><div class="led blue" id="led-step-4"></div><div class="led-label">T4</div></div>
-      <div class="led-labeled"><div class="led blue" id="led-step-5"></div><div class="led-label">T5</div></div>
       <span style="font-size:11px; color:#aaa; margin-left:8px; padding-bottom:2px;" id="step-label">T0</span>
       <span style="font-size:11px; color:#aaa; margin-left:24px; padding-bottom:2px;">INSTR&nbsp;<span id="instr-count" style="color:#555;">0</span></span>
     </div>
@@ -576,7 +575,7 @@ function applyState(state) {
 
   // Mikrosteg-teller
   if (state.step !== undefined) {
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < 5; i++) {
       const el = document.getElementById('led-step-' + i);
       if (el) el.classList.toggle('on', i === state.step);
     }
